@@ -269,8 +269,8 @@ const sendOnce = (entry, cipher, franking) =>
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // an attachment's message carries its caption and the file's key, and the file follows once the message is saved
-const plaintextOf = (entry, franking) =>
-  entry.file ? JSON.stringify({ caption: entry.caption ?? entry.text, file: entry.file, franking }) : encodePayload({ ...entry, franking });
+const plaintextOf = (entry, key) =>
+  entry.file ? JSON.stringify({ caption: entry.caption ?? entry.text, file: entry.file, frankingKey: key }) : encodePayload({ ...entry, frankingKey: key });
 
 const confirmQueued = (entry, saved, dispatch) => {
   const { text, caption, file, mentions, contact, statusQuote, emojiScale, replyTo } = entry;

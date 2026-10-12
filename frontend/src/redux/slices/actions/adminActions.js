@@ -1,5 +1,6 @@
-import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
+import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import axios from "@/utils/axios";
+import { notify } from "@/utils/notify";
 import { authenticateWithPasskey } from "@/utils/passkeys";
 
 // ------------- Overview Thunk -------------
@@ -19,7 +20,7 @@ const confirmed = async () => {
 const actOnPerson = (path, done) =>
   createApiThunk(`admin/${path}`, async ({ userId, ...details }) => {
     const { data } = await axios.put(`/admin/people/${userId}/${path}`, { ...details, confirmation: await confirmed() });
-    notifyResult({ status: "success", message: done });
+    notify({ severity: "success", message: done });
     return data;
   });
 
@@ -32,7 +33,7 @@ export const GetReports = createApiThunk("admin/reports", async ({ filter, page 
 
 export const DismissReport = createApiThunk("admin/dismiss", async ({ reportId, reason }) => {
   const { data } = await axios.put(`/admin/reports/${reportId}/dismiss`, { reason });
-  notifyResult({ status: "success", message: "Dismissed" });
+  notify({ severity: "success", message: "Dismissed" });
   return data;
 });
 

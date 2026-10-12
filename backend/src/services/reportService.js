@@ -5,6 +5,7 @@ import { MAX_EVIDENCE_MESSAGES, MAX_EVIDENCE_TEXT, MAX_REPORT_NOTE, REPORT_REASO
 import { MessageModel, ReportModel, UserModel } from "#src/models/index.js";
 import { matchesFranking } from "#src/utils/franking.js";
 import { findMemberConversation } from "#src/services/conversationService.js";
+import { isCloudinaryFile } from "#src/services/fileUploadService.js";
 
 const assertReason = (reason, note) => {
   if (!REPORT_REASONS.includes(reason)) throw createHttpError.BadRequest("Choose why you are reporting this");
@@ -13,7 +14,13 @@ const assertReason = (reason, note) => {
   }
 };
 
-const asFile = ({ url, key, iv, mimeType, name }) => ({ url: String(url), key, iv, mimeType, name });
+const asFile = ({ url, key, iv, mimeType, name }) => ({ url, key, iv, mimeType, name });
+
+// an attached file is only ever one Whisprl stored, so a report cannot point the panel somewhere else
+const filesIn = (files) => {
+  const allowed = Array.isArray(files) ? files.filter((file) => isCloudinaryFile(file?.url)).map(asFile) : [];
+  return allowed.length ? allowed : undefined;
+};
 
 // the reporter's device sends this, so each message is weighed against the fingerprint its sender left
 const asEvidence = async (sent, conversation_id) => {
@@ -36,7 +43,7 @@ const asEvidence = async (sent, conversation_id) => {
     ...(mongoose.isValidObjectId(sender) && { sender }),
     sentAt: new Date(sentAt),
     text: String(text ?? "").slice(0, MAX_EVIDENCE_TEXT),
-    files: Array.isArray(files) && files.length ? files.filter((file) => file?.url).map(asFile) : undefined,
+    files: filesIn(files),
     isReported: Boolean(isReported),
     check: checkOf(message, plaintext),
   }));

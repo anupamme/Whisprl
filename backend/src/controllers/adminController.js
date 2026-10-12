@@ -59,7 +59,7 @@ export const getReports = async (req, res, next) => {
   }
 };
 
-// dismissing changes nobody's access, so it needs a reason for the log but not the passkey
+// dismissing changes nobody's access, so unlike the others it does not ask for the passkey
 export const dismiss = async (req, res, next) => {
   try {
     await dismissReport(req.user, req.params.report_id, req.body);

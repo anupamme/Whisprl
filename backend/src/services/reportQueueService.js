@@ -16,7 +16,7 @@ const FILTERS = {
 };
 
 // only an update meant for everyone is readable here, since the rest are sealed to the people they were for
-const asSubject = ({ conversation, reportedStatus }) => {
+const asSubject = (conversation, reportedStatus) => {
   if (reportedStatus) {
     return reportedStatus.isPublic
       ? { kind: "status", status: { content: reportedStatus.content, file: reportedStatus.file, createdAt: reportedStatus.createdAt } }
@@ -30,7 +30,7 @@ const asSubject = ({ conversation, reportedStatus }) => {
   return { kind: "person" };
 };
 
-const asListed = ({ conversation, reportedStatus, ...report }) => ({ ...report, subject: asSubject({ conversation, reportedStatus }) });
+const asListed = ({ conversation, reportedStatus, ...report }) => ({ ...report, subject: asSubject(conversation, reportedStatus) });
 
 export const listReports = async ({ filter, page = 0 }) => {
   if (!(filter in FILTERS)) throw createHttpError.BadRequest("Choose a filter that exists");

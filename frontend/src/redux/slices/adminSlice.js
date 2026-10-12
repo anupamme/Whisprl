@@ -7,9 +7,9 @@ const initialState = {
   overview: null,
   latestOverviewFetch: null,
   people: { list: null, total: 0, hasMore: false },
+  latestPeopleFetch: null,
   reports: { list: null, total: 0, hasMore: false },
   latestReportsFetch: null,
-  latestPeopleFetch: null,
   // entries stay null until the first page arrives, so an empty log is told apart from one not read yet
   audit: { entries: null, hasMore: false },
 };

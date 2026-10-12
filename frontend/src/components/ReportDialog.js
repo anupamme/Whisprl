@@ -69,7 +69,7 @@ const ReportDialog = ({ subject, explanation, report, details, person, evidence,
             <DialogContentText sx={{ mt: 2, fontSize: 13 }}>
               {evidence.length === 1
                 ? "This sends that message to Whisprl, including anything attached to it."
-                : `This sends ${evidence.length} messages from this chat to Whisprl, from both sides and including anything attached.`}
+                : `This sends the last ${evidence.length} messages in this chat to Whisprl, whoever sent them, including anything attached.`}
             </DialogContentText>
           )}
           {person && (
