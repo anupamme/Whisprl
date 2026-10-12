@@ -11,8 +11,8 @@ const LOOKS = {
 
 export const statusOf = (person) => {
   if (person.bannedAt) return "banned";
-  if (person.isSuspended) return "suspended";
-  return person.role === "user" ? null : person.role;
+  if (person.suspendedUntil && dayjs(person.suspendedUntil).isAfter(dayjs())) return "suspended";
+  return person.role === "owner" || person.role === "admin" ? person.role : null;
 };
 
 export const suspensionEndsOn = (person) => dayjs(person.suspendedUntil).format("D MMM YYYY");

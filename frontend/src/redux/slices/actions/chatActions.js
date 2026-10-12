@@ -29,6 +29,7 @@ import { decryptAlbumReactions, decryptMessage, decryptReaction, encryptMessage,
 import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
 import { withHeldReaction } from "@/utils/heldReactions";
 import { batchKeyOf } from "@/utils/messageFiles";
+import { frankingKey, frankingOf } from "@/utils/crypto/franking";
 import { encodePayload } from "@/utils/messagePayload";
 import { isMuted } from "@/utils/chats";
 import { notifyArrival } from "@/utils/notifications";
@@ -249,13 +250,14 @@ export const SendTextMessage = ({ text, mentions, contact, statusQuote, emojiSca
 const UNENCRYPTABLE = "That message could not be encrypted. Reload Whisprl and try again.";
 
 // null when the acknowledgement timed out; a resend carries the same clientId, so it is never saved twice
-const sendOnce = (entry, cipher) =>
+const sendOnce = (entry, cipher, franking) =>
   socket
     .timeout(ACK_TIMEOUT)
     .emitWithAck("send_message", {
       convo_id: entry.conversationId,
       clientId: entry.clientId,
       cipher,
+      franking,
       replyTo: entry.replyTo?._id,
       replyToAlbum: entry.replyTo?.isAlbum,
       forwardOf: entry.forwardOf,
@@ -267,8 +269,8 @@ const sendOnce = (entry, cipher) =>
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // an attachment's message carries its caption and the file's key, and the file follows once the message is saved
-const plaintextOf = (entry) =>
-  entry.file ? JSON.stringify({ caption: entry.caption ?? entry.text, file: entry.file }) : encodePayload(entry);
+const plaintextOf = (entry, franking) =>
+  entry.file ? JSON.stringify({ caption: entry.caption ?? entry.text, file: entry.file, franking }) : encodePayload({ ...entry, franking });
 
 const confirmQueued = (entry, saved, dispatch) => {
   const { text, caption, file, mentions, contact, statusQuote, emojiScale, replyTo } = entry;
@@ -284,13 +286,17 @@ const deliverQueued = async (entry, dispatch, getState) => {
   const fail = (error) => dispatch(updateQueuedMessage({ clientId: entry.clientId, status: "failed", error }));
   const conversation = conversationById(getState(), entry.conversationId);
 
-  const cipher = await encryptMessage(plaintextOf(entry), conversation, getState().user.user._id).catch(() => null);
+  // the fingerprint is kept by the server and the key only inside the message, so a report can prove what was sent
+  const key = frankingKey();
+  const plaintext = plaintextOf(entry, key);
+  const franking = await frankingOf(key, plaintext);
+  const cipher = await encryptMessage(plaintext, conversation, getState().user.user._id).catch(() => null);
   if (!cipher) return fail(UNENCRYPTABLE);
 
   for (const retryPause of [...RETRY_PAUSES, null]) {
     if (!socket.connected || !isStillSending(getState, entry.clientId)) return;
 
-    const response = await sendOnce(entry, cipher);
+    const response = await sendOnce(entry, cipher, franking);
     if (response?.status === "success") return confirmQueued(entry, response.message, dispatch);
     if (response && !response.retryable) return fail(response.message);
     if (retryPause) await pause(retryPause);

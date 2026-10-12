@@ -47,6 +47,6 @@ export const UnblockUser = createApiThunk("user/unblock", async (userId, { dispa
 export const GetBlocked = createApiThunk("user/blocked", async () => (await axios.get("/user/blocked")).data.blocked);
 
 // ------------- Report -------------
-export const ReportChat = createApiThunk("user/report", async ({ conversationId, userId, reason, note }) => {
-  await axios.post("/user/report", { conversation_id: conversationId, user_id: userId, reason, note });
+export const ReportChat = createApiThunk("user/report", async ({ conversationId, userId, reason, note, evidence }) => {
+  await axios.post("/user/report", { conversation_id: conversationId, user_id: userId, reason, note, evidence });
 });

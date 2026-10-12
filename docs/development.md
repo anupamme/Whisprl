@@ -48,6 +48,30 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
   there is no fallback, since a weaker second path would set the bar.
 - **Staff cannot suspend or ban staff**, or themselves.
 
+## Reports
+
+A report names a person, a chat, a group or an update. What staff can do with it depends on
+what the server is able to see.
+
+- **Already visible:** profile photos and covers, a group's name, picture and members, and
+  updates shared with everyone, which are stored as they are. The queue shows these directly.
+- **Never visible:** messages, and updates meant for particular people. The only way staff can
+  read those is if the reporter's own device decrypts them and sends them, which the report
+  dialog says plainly before anything is sent.
+- **What a report attaches:** the messages around the reported one, from both sides, with the
+  key for each attached file. The admin page decrypts those files in the browser, so the
+  server never holds a plain copy. Attached messages are deleted 90 days after a report
+  closes, swept alongside expired messages and statuses.
+
+### Franking: proving an attached message is real
+
+A reporter sends plaintext, so without a check they could invent a conversation. Every message
+is sent with a random key sealed inside it and an HMAC of the payload under that key stored in
+the clear as `franking`. Neither half says anything on its own. On a report the plaintext comes
+back, the server takes the key out of it, recomputes the HMAC and compares, and each attached
+message is stored as `verified`, `failed`, or `unchecked` for one sent before franking existed.
+`unchecked` is not the same as `failed`, and the queue says which it is.
+
 ## Versioning
 
 `frontend/package.json` is the source of truth. `scripts/release.sh` writes each new

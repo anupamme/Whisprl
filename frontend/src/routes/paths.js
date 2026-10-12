@@ -31,6 +31,7 @@ export const PATH_ADMIN = {
   root: path(ROOTS_DASHBOARD, "admin"),
   overview: path(ROOTS_DASHBOARD, "admin/overview"),
   people: path(ROOTS_DASHBOARD, "admin/people"),
+  reports: path(ROOTS_DASHBOARD, "admin/reports"),
   audit: path(ROOTS_DASHBOARD, "admin/audit"),
 };
 

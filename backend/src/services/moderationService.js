@@ -5,6 +5,7 @@ import { UserModel } from "#src/models/index.js";
 import { HIDDEN_PROFILE_FIELDS } from "#src/models/userModel.js";
 import { MAX_AUDIT_REASON } from "#src/models/auditEntryModel.js";
 import { recordAction } from "#src/services/auditService.js";
+import { markReportActioned } from "#src/services/reportQueueService.js";
 import { endAllSessions, signOutEverywhere } from "#src/services/sessionService.js";
 import { isStaff, roleOf } from "#src/services/roleService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
@@ -51,7 +52,7 @@ const shutOut = async (io, user_id) => {
 };
 
 // staff see who an account really is, even once a ban has put a placeholder in its place
-const asListed = ({ hiddenProfile, ...user }) => ({ ...user, ...hiddenProfile, role: roleOf(user), isSuspended: isSuspended(user) });
+const asListed = ({ hiddenProfile, ...user }) => ({ ...user, ...hiddenProfile, role: roleOf(user) });
 
 export const listPeople = async ({ search, filter, page = 0 }) => {
   const now = new Date();
@@ -87,7 +88,7 @@ const assertNotBanned = (target) => {
   if (target.bannedAt) throw createHttpError.BadRequest("That account is already banned");
 };
 
-export const suspendPerson = async (io, actor, user_id, { until, reason }) => {
+export const suspendPerson = async (io, actor, user_id, { until, reason, reportId }) => {
   const given = assertReason(reason);
   const endsAt = new Date(until);
   if (Number.isNaN(endsAt.getTime()) || endsAt <= new Date()) throw createHttpError.BadRequest("Choose when the suspension ends");
@@ -97,9 +98,10 @@ export const suspendPerson = async (io, actor, user_id, { until, reason }) => {
   await UserModel.updateOne({ _id: target._id }, { suspendedUntil: endsAt });
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "suspended", target: target._id, reason: given });
+  await markReportActioned(actor, reportId);
 };
 
-export const banPerson = async (io, actor, user_id, { reason }) => {
+export const banPerson = async (io, actor, user_id, { reason, reportId }) => {
   const given = assertReason(reason);
   const target = await findTarget(actor, user_id);
   assertNotBanned(target);
@@ -111,6 +113,7 @@ export const banPerson = async (io, actor, user_id, { reason }) => {
   );
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "banned", target: target._id, reason: given });
+  await markReportActioned(actor, reportId);
 };
 
 export const restorePerson = async (actor, user_id, { reason }) => {

@@ -10,6 +10,7 @@ import SafetyRows from "@/components/profile/SafetyRows";
 import ReportDialog from "@/components/ReportDialog";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { identityOf } from "@/utils/chats";
+import { evidenceAround } from "@/utils/reportEvidence";
 import { DAY_SECONDS, canManage, durationOf } from "@/utils/groups";
 
 const DISAPPEAR_CHOICES = [null, DAY_SECONDS, 7 * DAY_SECONDS, 90 * DAY_SECONDS];
@@ -19,6 +20,7 @@ const disappearLabelOf = (seconds) => (seconds ? durationOf(seconds) : "Off");
 const ChatControls = ({ conversation }) => {
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
+  const messages = useSelector((state) => state.chat.messages);
   const [disappearAnchor, setDisappearAnchor] = useState(null);
   const [dialog, setDialog] = useState(null);
 
@@ -92,9 +94,10 @@ const ChatControls = ({ conversation }) => {
       {dialog === "report" && (
         <ReportDialog
           subject={conversation.name}
-          explanation="Messages stay end-to-end encrypted, so the report holds only what you tell us here."
+          explanation="Whisprl cannot read your messages, so a report carries only what you choose to send."
           report={ReportChat}
           details={{ conversationId }}
+          evidence={evidenceAround(messages)}
           onClose={() => setDialog(null)}
         />
       )}

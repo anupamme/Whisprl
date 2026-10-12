@@ -27,5 +27,14 @@ export const SuspendPerson = actOnPerson("suspend", "Suspended, and their sessio
 export const BanPerson = actOnPerson("ban", "Banned, and their sessions are closed");
 export const RestorePerson = actOnPerson("restore", "Their access is back");
 
+// ------------- Reports Thunks -------------
+export const GetReports = createApiThunk("admin/reports", async ({ filter, page }) => (await axios.get("/admin/reports", { params: { filter, page } })).data);
+
+export const DismissReport = createApiThunk("admin/dismiss", async ({ reportId, reason }) => {
+  const { data } = await axios.put(`/admin/reports/${reportId}/dismiss`, { reason });
+  notifyResult({ status: "success", message: "Dismissed" });
+  return data;
+});
+
 // ------------- Audit Log Thunk -------------
 export const GetAuditLog = createApiThunk("admin/audit", async (before) => (await axios.get("/admin/audit", { params: { before } })).data);

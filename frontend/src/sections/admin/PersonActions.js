@@ -33,14 +33,14 @@ const ACTIONS = {
   },
 };
 
-const ActionDialog = ({ action, person, onClose, onDone }) => {
+const ActionDialog = ({ action, person, reportId, onClose, onDone }) => {
   const dispatch = useDispatch();
   const [reason, setReason] = useState("");
   const [days, setDays] = useState(SUSPEND_DAYS[1]);
   const isWorking = useIsLoading(action.thunk);
 
   const act = async () => {
-    const details = { userId: person._id, reason, ...(action.needsLength && { until: dayjs().add(days, "day").toISOString() }) };
+    const details = { userId: person._id, reason, reportId, ...(action.needsLength && { until: dayjs().add(days, "day").toISOString() }) };
     const result = await dispatch(action.thunk(details));
     if (!action.thunk.fulfilled.match(result)) return;
     onClose();
@@ -93,7 +93,7 @@ const ActionDialog = ({ action, person, onClose, onDone }) => {
   );
 };
 
-const PersonActions = ({ person, onDone }) => {
+const PersonActions = ({ person, reportId, onDone }) => {
   const [kind, setKind] = useState(null);
   const status = statusOf(person);
 
@@ -116,7 +116,7 @@ const PersonActions = ({ person, onDone }) => {
         )}
       </Stack>
 
-      {kind && <ActionDialog action={ACTIONS[kind]} person={person} onClose={() => setKind(null)} onDone={onDone} />}
+      {kind && <ActionDialog action={ACTIONS[kind]} person={person} reportId={reportId} onClose={() => setKind(null)} onDone={onDone} />}
     </>
   );
 };
