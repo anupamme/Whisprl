@@ -14,10 +14,15 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Onboarding now includes a step to turn on notifications, with targeted guidance for browsers that block or don't support them
+    - Swiping down on a status closes it; swiping up opens the reply field, or shows who saw it on your own update
 
   - Improvements:
 
   - Fixed:
+    - Typing in a long conversation no longer lags; the composer input responds instantly again
+    - The typing indicator bubble no longer stretches to full width on mobile
+    - The Contacts badge now shows only requests you have not yet opened, and clears once you open the list
 
   - Developers:
 
