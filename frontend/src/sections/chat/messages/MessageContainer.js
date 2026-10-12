@@ -28,6 +28,7 @@ import getAvatar, { nameColorOf } from "@/utils/avatars";
 import { gradientOf } from "@/utils/gradients";
 import { firstNameIn, memberOf } from "@/utils/groups";
 import { filesOf, isMediaFile } from "@/utils/messageFiles";
+import { bareEmojiSizeOf, emojiScaleOf } from "@/utils/emoji";
 import { myReactionOn, quickReactionsOf } from "@/utils/reactions";
 
 const UNREADABLE = "This message can't be opened on this device";
@@ -107,6 +108,7 @@ const MessageContainer = ({
   const statusQuote = !isDeleted && message.statusQuote;
   const isQuoteOnly = Boolean(statusQuote) && !message.message;
   const isBare = isDeleted || msgType === "emoji" || isQuoteOnly;
+  const bareEmojiSize = msgType === "emoji" ? bareEmojiSizeOf(message.message) * emojiScaleOf(message.emojiScale) : undefined;
   // a deleted message keeps its menu, so anyone can still clear it from their own screen
   const hasMenu = Boolean(conversation && message._id && !isQueued && !message.event);
   const canAct = hasMenu && !isDeleted;
@@ -129,7 +131,7 @@ const MessageContainer = ({
     onHoldStill?.(anchorKey);
     dispatch(ReactToMessage({ message: reaction.message ?? message, emoji: reaction.emoji, isForAlbum: Boolean(reaction.isForAlbum) }));
   };
-  const quickReact = () => canAct && react(quickReactionsOf(user)[0]);
+  const quickReact = () => canAct && react(quickReactionsOf(user, conversation)[0]);
 
   const surfaceOf = () => {
     if (isBare) return { bgcolor: "transparent" };
@@ -359,12 +361,11 @@ const MessageContainer = ({
                       text={message.message}
                       mentionNames={mentionNames}
                       isMine={isMine}
-                      variant={!isFileMsg && msgType === "emoji" ? "h3" : "body2"}
                       trailing={hasText && <MetaSpacer {...meta} />}
                       sx={{
-                        fontSize: msgType === "emoji" ? undefined : 15,
+                        fontSize: bareEmojiSize ?? 15,
                         fontWeight: 500,
-                        lineHeight: 1.45,
+                        lineHeight: bareEmojiSize ? 1.15 : 1.45,
                         ...(isFileMsg && { px: 1.25, pb: 0.75, pt: 0.75 }),
                         // a caption takes no width of its own, so it wraps beneath the photo instead of stretching the bubble
                         ...(hasMedia && { width: 0, minWidth: "100%", boxSizing: "border-box" }),

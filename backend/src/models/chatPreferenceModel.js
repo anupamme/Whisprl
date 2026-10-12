@@ -10,6 +10,10 @@ const chatPreferenceSchema = mongoose.Schema({
   clearedAt: { type: Date },
   // hidden from this person's list until a message newer than this arrives
   deletedAt: { type: Date },
+  // the emoji the composer button sends in this chat
+  quickEmoji: { type: String },
+  // the six offered when reacting here, overriding the ones set in Settings
+  quickReactions: { type: [String], default: undefined },
 });
 
 chatPreferenceSchema.index({ user: 1, conversation: 1 }, { unique: true });
