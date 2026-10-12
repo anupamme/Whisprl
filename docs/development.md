@@ -32,6 +32,9 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
   does not exist. The route itself is no secret, since the code is public.
 - **The admin code loads only for staff.** Its layout and pages are lazy chunks behind the
   `StaffOnly` guard, so nobody else's browser downloads them.
+- **An account is active on any day it opened Whisprl.** Every new session and every token
+  renewal (which every page load makes) records one row per account per UTC day in
+  `activities`, and the overview's active counts read those rows.
 - **The audit log is read-only so far.** `AuditEntryModel` and the log page are in place;
   nothing writes an entry until there is a staff action to record.
 

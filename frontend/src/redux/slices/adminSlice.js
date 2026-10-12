@@ -1,9 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { GetAuditLog } from "@/redux/slices/actions/adminActions";
+import { GetAuditLog, GetOverview } from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
+  overview: null,
+  latestOverviewFetch: null,
   // entries stay null until the first page arrives, so an empty log is told apart from one not read yet
   audit: { entries: null, hasMore: false },
 };
@@ -14,6 +16,15 @@ const slice = createSlice({
   reducers: {},
   extraReducers(builder) {
     builder
+      // changing the range quickly starts overlapping fetches, and only the newest may land
+      .addCase(GetOverview.pending, (state, action) => {
+        state.latestOverviewFetch = action.meta.requestId;
+      })
+      .addCase(GetOverview.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.latestOverviewFetch) return;
+        const { totals, active, range, daily } = action.payload;
+        state.overview = { totals, active, range, daily };
+      })
       .addCase(GetAuditLog.fulfilled, (state, action) => {
         const { entries, hasMore } = action.payload;
         // a page asked for without a starting point is the newest, so it replaces whatever was shown

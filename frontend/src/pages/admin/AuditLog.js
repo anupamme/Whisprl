@@ -6,15 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import useIsLoading from "@/hooks/useIsLoading";
 import { GetAuditLog } from "@/redux/slices/actions/adminActions";
 import AuditTimeline from "@/sections/admin/AuditTimeline";
-
-const Notice = ({ title, children }) => (
-  <Box sx={{ mt: 4, maxWidth: 460 }}>
-    <Typography component="h2" sx={{ m: 0, fontSize: 17, fontWeight: 800 }}>
-      {title}
-    </Typography>
-    <Typography sx={{ mt: 0.75, fontSize: 14.5, color: "text.secondary" }}>{children}</Typography>
-  </Box>
-);
+import Notice from "@/sections/admin/Notice";
 
 const AuditLog = () => {
   const dispatch = useDispatch();

@@ -1,6 +1,6 @@
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowLeft, ClockCounterClockwise, Crown, ShieldStar } from "phosphor-react";
+import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, ShieldStar } from "phosphor-react";
 import { useSelector } from "react-redux";
 import { Link, Outlet, matchPath, useLocation } from "react-router-dom";
 
@@ -11,7 +11,10 @@ import { PATH_ADMIN, PATH_DASHBOARD } from "@/routes/paths";
 import getAvatar from "@/utils/avatars";
 
 const SIDEBAR_WIDTH = 248;
-const DESTINATIONS = [{ path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwise }];
+const DESTINATIONS = [
+  { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUp },
+  { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwise },
+];
 const ROLE_BADGES = { owner: { label: "Owner", Icon: Crown }, admin: { label: "Admin", Icon: ShieldStar } };
 
 const RoleBadge = ({ role }) => {
@@ -108,28 +111,58 @@ const Sidebar = () => {
   );
 };
 
+const PhoneNav = () => {
+  const { pathname } = useLocation();
+  return (
+    <Stack component="nav" aria-label="Admin" direction="row" spacing={0.5} sx={{ px: 1.5, pb: 1.25 }}>
+      {DESTINATIONS.map(({ path, label, Icon }) => {
+        const isActive = Boolean(matchPath(path, pathname));
+        return (
+          <ButtonBase
+            key={path}
+            component={Link}
+            to={path}
+            aria-current={isActive ? "page" : undefined}
+            sx={{
+              gap: 0.75,
+              px: 1.5,
+              py: 0.75,
+              borderRadius: 99,
+              color: isActive ? "common.white" : ON_RAIL,
+              bgcolor: isActive ? (theme) => alpha(theme.palette.primary.glow, 0.16) : "transparent",
+              "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.glow" },
+            }}
+          >
+            <Icon size={16} weight={isActive ? "fill" : "regular"} />
+            <Typography component="span" sx={{ fontSize: 13.5, fontWeight: isActive ? 800 : 600 }}>
+              {label}
+            </Typography>
+          </ButtonBase>
+        );
+      })}
+    </Stack>
+  );
+};
+
 const TopBar = () => {
   const role = useSelector((state) => state.user.user.role);
   return (
-    <Stack
-      component="header"
-      direction="row"
-      alignItems="center"
-      spacing={1}
-      sx={{ position: "sticky", top: 0, zIndex: 2, minHeight: 60, px: 1, pt: "env(safe-area-inset-top)", bgcolor: "chat.rail", color: "common.white" }}
-    >
-      <Tooltip title="Back to Whisprl">
-        <IconButton component={Link} to={PATH_DASHBOARD.general.chat} aria-label="Back to Whisprl" sx={{ color: ON_RAIL, width: 44, height: 44 }}>
-          <ArrowLeft size={22} weight="bold" />
-        </IconButton>
-      </Tooltip>
-      <Typography component="p" sx={{ m: 0, flex: 1 }}>
-        <Wordmark name="Admin" fontSize={24} />
-      </Typography>
-      <Box sx={{ pr: 1 }}>
-        <RoleBadge role={role} />
-      </Box>
-    </Stack>
+    <Box component="header" sx={{ position: "sticky", top: 0, zIndex: 2, pt: "env(safe-area-inset-top)", bgcolor: "chat.rail", color: "common.white" }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ minHeight: 60, px: 1 }}>
+        <Tooltip title="Back to Whisprl">
+          <IconButton component={Link} to={PATH_DASHBOARD.general.chat} aria-label="Back to Whisprl" sx={{ color: ON_RAIL, width: 44, height: 44 }}>
+            <ArrowLeft size={22} weight="bold" />
+          </IconButton>
+        </Tooltip>
+        <Typography component="p" sx={{ m: 0, flex: 1 }}>
+          <Wordmark name="Admin" fontSize={24} />
+        </Typography>
+        <Box sx={{ pr: 1 }}>
+          <RoleBadge role={role} />
+        </Box>
+      </Stack>
+      <PhoneNav />
+    </Box>
   );
 };
 

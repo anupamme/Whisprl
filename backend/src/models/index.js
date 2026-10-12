@@ -11,6 +11,7 @@ import ReportModel from "#src/models/reportModel.js";
 import StatusModel from "#src/models/statusModel.js";
 import AlbumModel from "#src/models/albumModel.js";
 import AuditEntryModel from "#src/models/auditEntryModel.js";
+import ActivityModel from "#src/models/activityModel.js";
 
 export {
   UserModel,
@@ -26,4 +27,5 @@ export {
   StatusModel,
   AlbumModel,
   AuditEntryModel,
+  ActivityModel,
 };
