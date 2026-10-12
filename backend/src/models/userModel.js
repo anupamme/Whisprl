@@ -119,6 +119,9 @@ const userSchema = mongoose.Schema(
     skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
     whatsNewSeen: { type: String },
 
+    // the browser holds the permission itself, so this only records that the account has turned them on once
+    notificationsAllowedAt: { type: Date },
+
     // End-to-end encryption: every public key the account has had, newest last
     publicKeys: [publicKeySchema],
     keyBackup: { type: keyBackupSchema, select: false },

@@ -14,10 +14,20 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Onboarding now includes a step to turn on notifications, with targeted guidance for browsers that block or don't support them
+    - Swiping down on a status closes it; swiping up opens the reply field, or shows who saw it on your own update
+    - A quick emoji button sits beside the message box: tap to send it, hold to send it bigger. Customise it, and the six reaction emoji, per chat from its details panel
+    - Messages of up to five emoji on their own now show without a bubble, sized by how many there are
+    - A message now makes a sound the moment it joins the chat, before the one that says it reached the server
 
   - Improvements:
+    - The composer's tools tuck behind a chevron while writing on a phone, so the message box gets the room
+    - Deleting a message for everyone now shows at once instead of after the server answers
 
   - Fixed:
+    - Typing in a long conversation no longer lags; the composer input responds instantly again
+    - The typing indicator bubble no longer stretches to full width on mobile
+    - The Contacts badge now shows only requests you have not yet opened, and clears once you open the list
 
   - Developers:
 

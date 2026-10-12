@@ -13,7 +13,7 @@ const TypingBubble = ({ names, isGroup }) => (
     role="status"
     aria-label={`${listOf(names)} ${names.length === 1 ? "is" : "are"} typing`}
     sx={{
-      alignSelf: "flex-start",
+      width: "fit-content",
       height: TYPING_BUBBLE_HEIGHT,
       px: 1.75,
       borderRadius: "18px 18px 18px 6px",

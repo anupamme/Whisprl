@@ -13,6 +13,9 @@ const requestSchema = new mongoose.Schema(
     // the note is sealed as the first message of this direct chat, so accepting moves it in unchanged
     conversationId: { type: mongoose.Schema.ObjectId },
     note: { type: cipherSchema, default: undefined },
+
+    // stamped when the recipient opens their requests, so the count on Contacts is only the new ones
+    seenAt: { type: Date },
   },
   {
     timestamps: true,

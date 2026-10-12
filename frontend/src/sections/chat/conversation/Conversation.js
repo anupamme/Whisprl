@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, Button, Stack, Typography } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
 import { UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
@@ -38,7 +38,10 @@ const lockedReasonFor = (keyStatus) => {
 
 const Conversation = () => {
   const dispatch = useDispatch();
-  const { activeConversation, activeConvoFriendship, files } = useSelector((state) => state.chat);
+  const { activeConversation, activeConvoFriendship, files } = useSelector(
+    ({ chat }) => ({ activeConversation: chat.activeConversation, activeConvoFriendship: chat.activeConvoFriendship, files: chat.files }),
+    shallowEqual
+  );
   const keyStatus = useSelector((state) => state.encryption.status);
   const { _id: meId, blocked = [] } = useSelector((state) => state.user.user);
   const friends = useSelector((state) => state.user.friends);

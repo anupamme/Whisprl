@@ -18,7 +18,7 @@ export const useTyping = (conversationId) => {
     dispatch(StopTyping(conversationId));
   };
 
-  const noteDraft = (text) => {
+  const noteTyping = (text) => {
     if (!text.trim()) return stopTyping();
     if (!isTyping.current) {
       isTyping.current = true;
@@ -36,5 +36,5 @@ export const useTyping = (conversationId) => {
     [conversationId, dispatch]
   );
 
-  return { noteDraft, stopTyping };
+  return { noteTyping, stopTyping };
 };

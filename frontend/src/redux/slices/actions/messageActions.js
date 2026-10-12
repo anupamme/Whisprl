@@ -45,8 +45,32 @@ export const EditMessage = createApiThunk("message/edit", async ({ message: edit
 });
 
 // ------------- Delete -------------
-export const DeleteForEveryone = createApiThunk("message/delete-for-everyone", async (message) => {
-  await axios.delete(`/message/${message._id}`);
+// everything the server strips, so the note it leaves behind does not change again when its copy arrives
+const asDeleted = (message) => ({
+  ...message,
+  message: undefined,
+  file: undefined,
+  files: [],
+  attachment: undefined,
+  contact: undefined,
+  statusQuote: undefined,
+  reactions: [],
+  replyTo: undefined,
+  replyToAlbum: undefined,
+  forwarded: undefined,
+  deletedAt: new Date().toISOString(),
+});
+
+// the note shows at once, and the message comes back if the server refuses to delete it
+export const DeleteForEveryone = createApiThunk("message/delete-for-everyone", async (message, { dispatch, getState }) => {
+  const shown = getState().chat.messages.find((each) => each._id === message._id) ?? message;
+  dispatch(replaceMessage(asDeleted(shown)));
+  try {
+    await axios.delete(`/message/${message._id}`);
+  } catch (error) {
+    dispatch(replaceMessage(shown));
+    throw error;
+  }
 });
 
 export const DeleteForMe = createApiThunk("message/delete-for-me", async (message, { dispatch }) => {

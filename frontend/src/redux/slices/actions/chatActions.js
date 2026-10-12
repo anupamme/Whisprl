@@ -32,7 +32,7 @@ import { batchKeyOf } from "@/utils/messageFiles";
 import { encodePayload } from "@/utils/messagePayload";
 import { isMuted } from "@/utils/chats";
 import { notifyArrival } from "@/utils/notifications";
-import { playSound } from "@/utils/sounds";
+import { playQueuedSound, playSound } from "@/utils/sounds";
 
 const ACK_TIMEOUT = 10000;
 // about a minute of trying while connected, and time offline does not count against it
@@ -215,7 +215,7 @@ export const quoteOf = (message) => {
 };
 
 // shown at once from the outbox; the server's copy replaces it once it is saved
-export const SendTextMessage = ({ text, mentions, contact, statusQuote, forwardOf, file, batch, conversationId }) => (dispatch, getState) => {
+export const SendTextMessage = ({ text, mentions, contact, statusQuote, emojiScale, forwardOf, file, batch, conversationId }) => (dispatch, getState) => {
   const { chat, user } = getState();
   const targetId = conversationId ?? chat.activeConversation._id;
   const isHere = targetId === chat.activeConversation?._id;
@@ -234,6 +234,7 @@ export const SendTextMessage = ({ text, mentions, contact, statusQuote, forwardO
       mentions,
       contact,
       statusQuote,
+      emojiScale,
       forwardOf,
       file,
       batch,
@@ -241,6 +242,7 @@ export const SendTextMessage = ({ text, mentions, contact, statusQuote, forwardO
     })
   );
   if (takesReply) dispatch(setReplyingTo(null));
+  playQueuedSound();
   dispatch(FlushOutbox());
 };
 
@@ -269,8 +271,8 @@ const plaintextOf = (entry) =>
   entry.file ? JSON.stringify({ caption: entry.caption ?? entry.text, file: entry.file }) : encodePayload(entry);
 
 const confirmQueued = (entry, saved, dispatch) => {
-  const { text, caption, file, mentions, contact, statusQuote, replyTo } = entry;
-  dispatch(messageArrived({ ...saved, message: text ?? caption ?? "", file, mentions, contact, statusQuote, replyTo: replyTo ?? saved.replyTo, reactions: [] }));
+  const { text, caption, file, mentions, contact, statusQuote, emojiScale, replyTo } = entry;
+  dispatch(messageArrived({ ...saved, message: text ?? caption ?? "", file, mentions, contact, statusQuote, emojiScale, replyTo: replyTo ?? saved.replyTo, reactions: [] }));
   playSound("sent");
   if (!entry.file || entry.forwardOf) return;
   markAttachmentSent(entry.clientId, saved._id);

@@ -185,17 +185,26 @@ export const listOnlineFriends = (user) =>
     "firstName lastName avatar onlineStatus"
   );
 
-const withPerson = (requests, field) =>
+const asReceived = (requests) =>
   requests
-    .filter((request) => request[field])
-    .map(({ _id, note, conversationId, createdAt, [field]: person }) => ({ _id, person, note, conversationId, createdAt }));
+    .filter((request) => request.sender)
+    .map(({ _id, note, conversationId, createdAt, seenAt, sender }) => ({ _id, person: sender, note, conversationId, createdAt, isSeen: Boolean(seenAt) }));
 
-// nothing here says whether a note was read, so the sender learns nothing until an answer
+const asSent = (requests) =>
+  requests
+    .filter((request) => request.recipient)
+    .map(({ _id, note, conversationId, createdAt, recipient }) => ({ _id, person: recipient, note, conversationId, createdAt }));
+
+// isSeen is on received requests alone, so a sender learns nothing about their own until an answer
 export const listRequests = async (user_id) => {
   const [received, sent, cooldowns] = await Promise.all([
     FriendRequestModel.find({ recipient: user_id }).populate("sender", REQUESTER_FIELDS).lean(),
     FriendRequestModel.find({ sender: user_id }).populate("recipient", REQUESTER_FIELDS).lean(),
     cooldownsOf(user_id),
   ]);
-  return { incoming: withPerson(received, "sender"), outgoing: withPerson(sent, "recipient"), cooldowns };
+  return { incoming: asReceived(received), outgoing: asSent(sent), cooldowns };
+};
+
+export const markRequestsSeen = async (user_id) => {
+  await FriendRequestModel.updateMany({ recipient: user_id, seenAt: { $exists: false } }, { seenAt: new Date() });
 };
