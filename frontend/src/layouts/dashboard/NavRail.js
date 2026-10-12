@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import useSettings from "@/hooks/useSettings";
-import { selectWaitingRequests } from "@/redux/slices/contactSlice";
+import { selectUnseenRequests } from "@/redux/slices/contactSlice";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { isMuted } from "@/utils/chats";
@@ -31,8 +31,8 @@ const useBadgeCounts = () => {
   const unreadChats = useSelector(
     (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
   );
-  const waitingRequests = useSelector((state) => selectWaitingRequests(state).length);
-  return { [chat]: unreadChats, [contacts]: waitingRequests };
+  const newRequests = useSelector((state) => selectUnseenRequests(state).length);
+  return { [chat]: unreadChats, [contacts]: newRequests };
 };
 
 const isAt = (pathname, path) => Boolean(matchPath({ path, end: false }, pathname));

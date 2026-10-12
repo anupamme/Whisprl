@@ -11,6 +11,7 @@ const STEPS = [
   { id: "username", isRequired: true, isDone: ({ user }) => Boolean(user.usernameConfirmedAt || user.usernameChangedAt) },
   { id: "messages", isRequired: true, isDone: ({ user }) => Boolean(user.recoveryKeySavedAt) },
   { id: "passkey", isRequired: false, version: 1, isDone: ({ hasPasskey }) => hasPasskey },
+  { id: "notifications", isRequired: false, version: 1, isDone: ({ user }) => Boolean(user.notificationsAllowedAt) },
   { id: "profile", isRequired: false, version: 1, isForNewAccounts: true, isDone: ({ user }) => Boolean(user.avatar || user.activityStatus) },
 ];
 
@@ -71,6 +72,13 @@ export const confirmUsernameStep = async (user) => {
 export const saveRecoveryKeyStep = async (user) => {
   if (!user.publicKeys.length) throw createHttpError.BadRequest("Make your recovery key first");
   user.recoveryKeySavedAt = new Date();
+  await user.save();
+  await settleOnboarding(user);
+  return user;
+};
+
+export const allowNotificationsStep = async (user) => {
+  user.notificationsAllowedAt = new Date();
   await user.save();
   await settleOnboarding(user);
   return user;

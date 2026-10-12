@@ -7,6 +7,9 @@ export const SaveBirthdayStep = createApiThunk("onboarding/birthday", async (val
 // ------------- Recovery Key Saved -------------
 export const ConfirmRecoveryKeySaved = createApiThunk("onboarding/recovery-key", async () => (await axios.put("/onboarding/recovery-key")).data);
 
+// ------------- Notifications Allowed -------------
+export const AllowNotifications = createApiThunk("onboarding/notifications", async () => (await axios.put("/onboarding/notifications")).data);
+
 // ------------- Refresh Progress -------------
 export const GetOnboarding = createApiThunk("onboarding/get", async () => (await axios.get("/onboarding")).data);
 

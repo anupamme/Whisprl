@@ -11,6 +11,7 @@ import {
   GetUserData,
   HideSuggestion,
   SearchForUsers,
+  SeeRequests,
 } from "@/redux/slices/actions/contactActions";
 
 const initialState = {
@@ -55,6 +56,10 @@ const slice = createSlice({
         const { incoming, outgoing, cooldowns } = action.payload;
         Object.assign(state, { incoming, outgoing, cooldowns });
       })
+      // marking them seen only raises flags, so it never races a fetch for the list itself
+      .addCase(SeeRequests.fulfilled, (state) => {
+        state.incoming = state.incoming.map((request) => ({ ...request, isSeen: true }));
+      })
       .addCase(SearchForUsers.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;
         state.searchedUsersList = found ? action.payload.users : null;
@@ -94,5 +99,8 @@ export const { clearSearchUsers } = slice.actions;
 export const selectWaitingRequests = createSelector([(state) => state.contact.incoming, (state) => state.contact.declining], (incoming, declining) =>
   incoming.filter((request) => !declining.includes(request.person._id))
 );
+
+// the count is for requests not looked at yet, so it goes once the list has been opened
+export const selectUnseenRequests = createSelector([selectWaitingRequests], (waiting) => waiting.filter((request) => !request.isSeen));
 
 export default slice.reducer;

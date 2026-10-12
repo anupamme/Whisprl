@@ -6,6 +6,7 @@ import {
   listFriends,
   listOnlineFriends,
   listRequests,
+  markRequestsSeen,
   noteTargetFor,
   sendFriendRequest,
   unfriend,
@@ -134,6 +135,15 @@ export const searchFriends = async (req, res, next) => {
 export const getRequests = async (req, res, next) => {
   try {
     res.status(200).json({ status: "success", ...(await listRequests(req.user._id)) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const seeRequests = async (req, res, next) => {
+  try {
+    await markRequestsSeen(req.user._id);
+    res.status(200).json({ status: "success" });
   } catch (error) {
     next(error);
   }

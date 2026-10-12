@@ -3,18 +3,19 @@ import { Box, IconButton, InputBase, Popover, Stack, Tooltip, Typography, useMed
 import { alpha } from "@mui/material/styles";
 import { AnimatePresence, m } from "framer-motion";
 import { ArrowBendUpLeft, PaperPlaneTilt, PencilSimple, Smiley, X } from "phosphor-react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import EmojiPicker from "@/components/EmojiPicker";
 import { ChooseAttachments } from "@/redux/slices/actions/attachmentActions";
 import { SendTextMessage } from "@/redux/slices/actions/chatActions";
 import { EditMessage } from "@/redux/slices/actions/messageActions";
-import { setDraft, setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
+import { setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
 import AttachMenu from "@/sections/chat/conversation/AttachMenu";
 import { MESSAGE_COLUMN_WIDTH } from "@/sections/chat/conversation/ConversationMain";
 import MentionSuggestions from "@/sections/chat/conversation/MentionSuggestions";
 import ShareContactDialog from "@/sections/chat/conversation/ShareContactDialog";
 import VoiceRecorder from "@/sections/chat/conversation/VoiceRecorder";
+import { useDraft } from "@/sections/chat/conversation/useDraft";
 import { useTyping } from "@/sections/chat/conversation/useTyping";
 import MediaTile from "@/sections/chat/messages/MediaTile";
 import getAvatar from "@/utils/avatars";
@@ -98,8 +99,12 @@ const Composer = () => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
   const user = useSelector((state) => state.user.user);
   const meId = user._id;
-  const { activeConversation: conversation, replyingTo, editing, drafts } = useSelector((state) => state.chat);
-  const [value, setValue] = useState(drafts[conversation._id] ?? "");
+  const { activeConversation: conversation, replyingTo, editing } = useSelector(
+    ({ chat }) => ({ activeConversation: chat.activeConversation, replyingTo: chat.replyingTo, editing: chat.editing }),
+    shallowEqual
+  );
+  const savedDraft = useSelector((state) => state.chat.drafts[conversation._id]);
+  const [value, setValue] = useState(savedDraft ?? "");
   const [mentionIds, setMentionIds] = useState([]);
   const [mentionQuery, setMentionQuery] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -109,7 +114,8 @@ const Composer = () => {
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
   const pendingCaret = useRef(null);
-  const { noteDraft, stopTyping } = useTyping(conversation._id);
+  const { noteTyping, stopTyping } = useTyping(conversation._id);
+  const { noteDraft, clearDraft } = useDraft(conversation._id);
 
   const suggestions =
     conversation.isGroup && mentionQuery !== null
@@ -133,8 +139,8 @@ const Composer = () => {
     setValue(text);
     setMentionQuery(mentionQueryBefore(text, caret));
     setActiveSuggestion(0);
-    noteDraft(text);
-    if (!editing) dispatch(setDraft({ conversationId: conversation._id, text }));
+    noteTyping(text);
+    if (!editing) noteDraft(text);
   };
 
   const insertAtCaret = (insert, replaceBefore = 0) => {
@@ -162,7 +168,7 @@ const Composer = () => {
 
   const cancelEdit = () => {
     dispatch(setEditing(null));
-    setValue(drafts[conversation._id] ?? "");
+    setValue(savedDraft ?? "");
   };
 
   const submit = (event) => {
@@ -181,7 +187,7 @@ const Composer = () => {
     stopTyping();
     setValue("");
     setMentionIds([]);
-    dispatch(setDraft({ conversationId: conversation._id, text: "" }));
+    clearDraft();
   };
 
   const handleKeyDown = (event) => {

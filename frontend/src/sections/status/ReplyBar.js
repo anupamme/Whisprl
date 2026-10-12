@@ -51,9 +51,8 @@ const ReactionsRow = ({ chosen, onReact }) => (
 );
 
 // a stranger's update for everyone takes reactions only, since chats are between friends
-const ReplyBar = ({ status, canReply, isPicking, onPicking, onTyping }) => {
+const ReplyBar = ({ status, canReply, fieldRef, isPicking, onPicking, onTyping }) => {
   const dispatch = useDispatch();
-  const field = useRef(null);
   const [text, setText] = useState("");
   const [isSent, setIsSent] = useState(false);
   const [sentReaction, setSentReaction] = useState(null);
@@ -80,7 +79,7 @@ const ReplyBar = ({ status, canReply, isPicking, onPicking, onTyping }) => {
     setText("");
     setIsSent(true);
     onPicking(false);
-    field.current.blur();
+    fieldRef.current.blur();
   };
 
   return (
@@ -98,7 +97,7 @@ const ReplyBar = ({ status, canReply, isPicking, onPicking, onTyping }) => {
               setText(event.target.value);
               setIsSent(false);
             }}
-            inputRef={field}
+            inputRef={fieldRef}
             onKeyDown={keepKeys}
             onFocus={() => {
               onTyping(true);

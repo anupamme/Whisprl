@@ -14,6 +14,7 @@ import {
   hideSuggestion,
   removeFriend,
   searchFriends,
+  seeRequests,
   sendRequest,
 } from "#src/controllers/friendsController.js";
 
@@ -55,6 +56,9 @@ friendsRouter.route("/search").get(trimRequest.all, protect, searchLimit(), sear
 
 // Received and sent requests, with the cooldowns still running
 friendsRouter.route("/requests").get(trimRequest.all, protect, readLimit(), getRequests);
+
+// Opening the list clears the count of requests not looked at yet
+friendsRouter.route("/requests/seen").put(trimRequest.all, protect, writeLimit(), seeRequests);
 
 // People you may know, and hiding one of them
 friendsRouter.route("/suggestions").get(trimRequest.all, protect, readLimit(), getSuggestions);

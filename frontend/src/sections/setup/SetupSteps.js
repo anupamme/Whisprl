@@ -3,13 +3,21 @@ import { Typography } from "@mui/material";
 
 import AuthHeader from "@/sections/auth/AuthHeader";
 import BirthdayStep from "@/sections/setup/BirthdayStep";
+import NotificationsStep from "@/sections/setup/NotificationsStep";
 import PasskeyStep from "@/sections/setup/PasskeyStep";
 import ProfileStep from "@/sections/setup/ProfileStep";
 import ProtectMessagesStep from "@/sections/setup/ProtectMessagesStep";
 import UsernameStep from "@/sections/setup/UsernameStep";
 import { pendingStepsOf } from "@/utils/onboarding";
 
-const STEP_VIEWS = { birthday: BirthdayStep, username: UsernameStep, messages: ProtectMessagesStep, passkey: PasskeyStep, profile: ProfileStep };
+const STEP_VIEWS = {
+  birthday: BirthdayStep,
+  username: UsernameStep,
+  messages: ProtectMessagesStep,
+  passkey: PasskeyStep,
+  notifications: NotificationsStep,
+  profile: ProfileStep,
+};
 
 const SetupSteps = ({ onboarding }) => {
   // counted from what was left on arrival, so someone missing one thing never reads "step 2 of 2"

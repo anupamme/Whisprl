@@ -1,7 +1,7 @@
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { ArrowLeft, Info, MagnifyingGlass, Timer, User, X } from "phosphor-react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
-import { useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
 
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import TypingDots from "@/components/TypingDots";
@@ -39,7 +39,10 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
   const isStill = useReducedMotion();
   const meId = useSelector((state) => state.user.user._id);
   const onlineFriends = useSelector((state) => state.user.onlineFriends);
-  const { activeConversation: conversation, typingConversation, connection } = useSelector((state) => state.chat);
+  const { activeConversation: conversation, typingConversation, connection } = useSelector(
+    ({ chat }) => ({ activeConversation: chat.activeConversation, typingConversation: chat.typingConversation, connection: chat.connection }),
+    shallowEqual
+  );
   const details = useDetailsToggle();
 
   const { name, avatar, peer } = identityOf(conversation, meId);
