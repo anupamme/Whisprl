@@ -1,17 +1,19 @@
 import { Box, ButtonBase } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
-import { PRESETS } from "@/sections/admin/dayRanges";
-
-const RangePresets = ({ current, onChoose }) => (
-  <Box role="group" aria-label="Days shown" sx={{ display: "grid", gap: 1, gridTemplateColumns: { xs: "1fr 1fr", sm: `repeat(${PRESETS.length}, auto)` } }}>
-    {PRESETS.map((preset) => {
-      const isCurrent = preset.label === current?.label;
+const PillGroup = ({ label, options, value, onChange }) => (
+  <Box
+    role="group"
+    aria-label={label}
+    sx={{ display: "grid", gap: 1, gridTemplateColumns: { xs: "1fr 1fr", sm: `repeat(${options.length}, auto)` } }}
+  >
+    {options.map((option) => {
+      const isCurrent = option.value === value;
       return (
         <ButtonBase
-          key={preset.label}
+          key={option.value}
           aria-pressed={isCurrent}
-          onClick={() => onChoose(preset.rangeOf())}
+          onClick={() => onChange(option.value)}
           sx={{
             px: 1.5,
             height: 36,
@@ -27,11 +29,11 @@ const RangePresets = ({ current, onChoose }) => (
             "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.main" },
           }}
         >
-          {preset.label}
+          {option.label}
         </ButtonBase>
       );
     })}
   </Box>
 );
 
-export default RangePresets;
+export default PillGroup;

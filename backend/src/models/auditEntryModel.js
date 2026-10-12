@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const MAX_AUDIT_REASON = 500;
+export const MAX_AUDIT_REASON = 500;
 
 // written once and never changed, so the log stays a true account of what staff did
 const auditEntrySchema = mongoose.Schema(

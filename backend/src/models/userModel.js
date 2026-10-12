@@ -65,6 +65,10 @@ const birthdaySchema = mongoose.Schema(
   { _id: false }
 );
 
+export const HIDDEN_PROFILE_FIELDS = ["firstName", "lastName", "username", "avatar", "cover", "activityStatus"];
+
+const profileSchema = mongoose.Schema({ firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String }, { _id: false });
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
@@ -99,6 +103,11 @@ const userSchema = mongoose.Schema(
 
     verified: { type: Boolean, default: false },
     role: { type: String, enum: ROLES, default: "user" },
+
+    bannedAt: { type: Date },
+    suspendedUntil: { type: Date },
+    // what a ban replaced, so staff can still tell who it is and a restore puts it all back
+    hiddenProfile: { type: profileSchema, select: false },
     verification: { type: verificationSchema, select: false },
     passwordReset: { type: passwordResetSchema, select: false },
 

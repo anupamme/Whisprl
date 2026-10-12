@@ -1,6 +1,6 @@
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, ShieldStar } from "phosphor-react";
+import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, ShieldStar, Users } from "phosphor-react";
 import { useSelector } from "react-redux";
 import { Link, Outlet, matchPath, useLocation } from "react-router-dom";
 
@@ -13,6 +13,7 @@ import getAvatar from "@/utils/avatars";
 const SIDEBAR_WIDTH = 248;
 const DESTINATIONS = [
   { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUp },
+  { path: PATH_ADMIN.people, label: "People", Icon: Users },
   { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwise },
 ];
 const ROLE_BADGES = { owner: { label: "Owner", Icon: Crown }, admin: { label: "Admin", Icon: ShieldStar } };

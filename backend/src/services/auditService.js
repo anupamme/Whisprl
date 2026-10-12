@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 
 import { AuditEntryModel } from "#src/models/index.js";
 
+export const recordAction = ({ actor, action, target, reason }) => AuditEntryModel.create({ actor, action, target, reason });
+
 const PAGE_SIZE = 50;
 const PERSON_FIELDS = "firstName lastName avatar";
 

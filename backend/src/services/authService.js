@@ -13,6 +13,7 @@ import { formatRemainingTime, transporter } from "#src/services/mailer.js";
 import { endAllSessions, isSessionActive, sessionEnded, verifyAccessToken } from "#src/services/sessionService.js";
 import { onboardingOf } from "#src/services/onboardingService.js";
 import { roleOf } from "#src/services/roleService.js";
+import { assertNotShutOut } from "#src/services/moderationService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 
 const CODE_LIFETIME = 10 * 60 * 1000;
@@ -64,6 +65,7 @@ const sendMail = async (to, subject, html) => {
 export const findSessionUser = async (user_id) => {
   const user = await UserModel.findOne({ _id: user_id, verified: true });
   if (!user) throw sessionEnded();
+  assertNotShutOut(user);
   return user;
 };
 

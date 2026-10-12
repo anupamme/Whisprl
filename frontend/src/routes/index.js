@@ -50,6 +50,7 @@ export default function Router() {
           children: [
             { element: <Navigate to={PATH_ADMIN.overview} replace />, index: true },
             { path: "overview", element: <OverviewPage /> },
+            { path: "people", element: <PeoplePage /> },
             { path: "audit", element: <AuditLogPage /> },
             { path: "*", element: <Navigate to="/404" replace /> },
           ],
@@ -99,6 +100,7 @@ const ResetPasswordPage = Loadable(
 // admin pages, fetched only once the guard has let someone through
 const AdminLayout = Loadable(lazy(() => import("@/layouts/admin")));
 const OverviewPage = Loadable(lazy(() => import("@/pages/admin/Overview")));
+const PeoplePage = Loadable(lazy(() => import("@/pages/admin/People")));
 const AuditLogPage = Loadable(lazy(() => import("@/pages/admin/AuditLog")));
 
 // docs pages

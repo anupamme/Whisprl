@@ -30,6 +30,7 @@ export const PATH_SETUP = path(ROOTS_DASHBOARD, "setup");
 export const PATH_ADMIN = {
   root: path(ROOTS_DASHBOARD, "admin"),
   overview: path(ROOTS_DASHBOARD, "admin/overview"),
+  people: path(ROOTS_DASHBOARD, "admin/people"),
   audit: path(ROOTS_DASHBOARD, "admin/audit"),
 };
 

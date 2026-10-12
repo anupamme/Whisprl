@@ -7,10 +7,10 @@ import useIsLoading from "@/hooks/useIsLoading";
 import { GetOverview } from "@/redux/slices/actions/adminActions";
 import DailyChart from "@/sections/admin/DailyChart";
 import DateRangePicker from "@/sections/admin/DateRangePicker";
-import { lastDays, presetOf } from "@/sections/admin/dayRanges";
+import { PRESETS, lastDays, presetOf } from "@/sections/admin/dayRanges";
 import Notice from "@/sections/admin/Notice";
 import OverviewFigures from "@/sections/admin/OverviewFigures";
-import RangePresets from "@/sections/admin/RangePresets";
+import PillGroup from "@/sections/admin/PillGroup";
 
 const Overview = () => {
   const dispatch = useDispatch();
@@ -52,7 +52,12 @@ const Overview = () => {
             <Typography sx={{ mt: 0.25, fontSize: 13, color: "text.secondary" }}>Days run midnight to midnight UTC.</Typography>
           </Box>
           <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "stretch", sm: "center" }} flexWrap="wrap" sx={{ gap: 1, width: { xs: "100%", sm: "auto" } }}>
-            <RangePresets current={preset} onChoose={setRange} />
+            <PillGroup
+              label="Days shown"
+              options={PRESETS.map(({ label }) => ({ value: label, label }))}
+              value={preset?.label ?? null}
+              onChange={(label) => setRange(PRESETS.find((each) => each.label === label).rangeOf())}
+            />
             <DateRangePicker value={range} isCustom={!preset} onChange={setRange} />
           </Stack>
         </Stack>

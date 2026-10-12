@@ -19,8 +19,10 @@ import {
   startSession,
 } from "#src/services/sessionService.js";
 import { settleOnboarding } from "#src/services/onboardingService.js";
+import { assertNotShutOut } from "#src/services/moderationService.js";
 
 export const respondWithSession = async (req, res, user, message, extra = {}) => {
+  assertNotShutOut(user);
   await settleOnboarding(user);
   const session = await startSession(user, req.body.sessionKey, req);
   res.status(200).json({ status: "success", message, user: await toSessionUser(user), ...session, ...extra });

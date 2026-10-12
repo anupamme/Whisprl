@@ -35,8 +35,18 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
 - **An account is active on any day it opened Whisprl.** Every new session and every token
   renewal (which every page load makes) records one row per account per UTC day in
   `activities`, and the overview's active counts read those rows.
-- **The audit log is read-only so far.** `AuditEntryModel` and the log page are in place;
-  nothing writes an entry until there is a staff action to record.
+- **Suspending and banning shut an account out at once.** Both end every session and
+  disconnect every socket, and `findSessionUser` refuses them on each later request, so a
+  token still in flight cannot be used. A suspension names the day it ends.
+- **A ban writes the placeholder in rather than hiding the account on read.** `populate`
+  skips query middleware, so masking on read missed most of the places a person is shown.
+  Banning moves the name, username, photo, cover and status line into `hiddenProfile` and
+  writes "Deleted account" over them; restoring puts them back. Staff pages read
+  `hiddenProfile` to show who it really is.
+- **Every staff action records an audit entry** through `recordAction`, and asks for the
+  acting person's passkey first. Staff without a passkey are told to add one in Settings:
+  there is no fallback, since a weaker second path would set the bar.
+- **Staff cannot suspend or ban staff**, or themselves.
 
 ## Versioning
 
