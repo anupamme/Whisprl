@@ -12,6 +12,7 @@ import resetMail from "#src/templates/mail/reset.js";
 import { formatRemainingTime, transporter } from "#src/services/mailer.js";
 import { endAllSessions, isSessionActive, sessionEnded, verifyAccessToken } from "#src/services/sessionService.js";
 import { onboardingOf } from "#src/services/onboardingService.js";
+import { roleOf } from "#src/services/roleService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 
 const CODE_LIFETIME = 10 * 60 * 1000;
@@ -37,6 +38,7 @@ export const toSessionUser = async (user) => ({
   onboarding: await onboardingOf(user),
   whatsNewSeen: user.whatsNewSeen ?? null,
   createdAt: user.createdAt,
+  role: roleOf(user),
 });
 
 const matchesHash = (value, hash) => crypto.timingSafeEqual(Buffer.from(sha256(value)), Buffer.from(hash));

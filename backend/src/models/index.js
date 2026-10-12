@@ -10,6 +10,7 @@ import ChatPreferenceModel from "#src/models/chatPreferenceModel.js";
 import ReportModel from "#src/models/reportModel.js";
 import StatusModel from "#src/models/statusModel.js";
 import AlbumModel from "#src/models/albumModel.js";
+import AuditEntryModel from "#src/models/auditEntryModel.js";
 
 export {
   UserModel,
@@ -24,4 +25,5 @@ export {
   ReportModel,
   StatusModel,
   AlbumModel,
+  AuditEntryModel,
 };

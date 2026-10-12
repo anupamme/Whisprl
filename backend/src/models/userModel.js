@@ -6,6 +6,9 @@ import { COVER_PALETTES, COVER_PATTERNS } from "#src/utils/coverStyles.js";
 
 const PASSWORD_COST = 12;
 
+// the owner is not stored: it is whichever account OWNER_EMAIL names
+const ROLES = ["user", "admin"];
+
 const publicKeySchema = mongoose.Schema(
   {
     keyId: { type: String, required: true },
@@ -95,6 +98,7 @@ const userSchema = mongoose.Schema(
     password: { type: String, select: false },
 
     verified: { type: Boolean, default: false },
+    role: { type: String, enum: ROLES, default: "user" },
     verification: { type: verificationSchema, select: false },
     passwordReset: { type: passwordResetSchema, select: false },
 

@@ -18,6 +18,23 @@ scripts/check.sh                             # the gate
 Run the gate before every commit and **gate on its exit code**, not on a read of its output. A
 pipe into `tail` or `grep` reports the exit code of the pipe, so a failed build looks green.
 
+## Staff roles
+
+`OWNER_EMAIL` in `backend/.env` names the one account that owns Whisprl. It is read on every
+request rather than stored, so nothing inside the app can hand ownership to another account,
+and changing the environment is the only way to move it. The account still has to exist and
+be verified; until then nobody is the owner. Every other account is a `user` or an `admin`.
+
+Staff reach the admin panel at `/admin`, which also has a row in Settings that only staff see.
+
+- **The server is what keeps the panel private.** Every `/api/admin` route sits behind
+  `protect` and `staffOnly`, and anyone who is not staff gets the same 404 as an address that
+  does not exist. The route itself is no secret, since the code is public.
+- **The admin code loads only for staff.** Its layout and pages are lazy chunks behind the
+  `StaffOnly` guard, so nobody else's browser downloads them.
+- **The audit log is read-only so far.** `AuditEntryModel` and the log page are in place;
+  nothing writes an entry until there is a staff action to record.
+
 ## Versioning
 
 `frontend/package.json` is the source of truth. `scripts/release.sh` writes each new

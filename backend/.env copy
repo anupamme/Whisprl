@@ -3,6 +3,9 @@ PORT = 8000
 MONGODB_URI = ""
 JWT_ACCESS_SECRET = ""
 
+# The one account that owns Whisprl, by email
+OWNER_EMAIL = ""
+
 # Origin - (Required-Change with your frontend url)
 FRONT_URL = "http://localhost:3000"
 
