@@ -3,8 +3,9 @@ import { useRoutes, Navigate } from "react-router-dom";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import { DEFAULT_AUTH, DEFAULT_DOCS, DEFAULT_PATH } from "@/config";
-import { PATH_DASHBOARD } from "@/routes/paths";
+import { PATH_ADMIN, PATH_DASHBOARD } from "@/routes/paths";
 import DashboardLayout from "@/layouts/dashboard";
+import StaffOnly from "@/layouts/admin/StaffOnly";
 import AuthLayout from "@/layouts/auth";
 import DocsLayout from "@/layouts/docs";
 
@@ -37,6 +38,21 @@ export default function Router() {
       children: [
         { element: <Navigate to={DEFAULT_DOCS} replace />, index: true },
         { path: "tnc", element: <TnCPage /> },
+      ],
+    },
+    { path: "/welcome", element: <Navigate to={DEFAULT_AUTH} replace /> },
+    {
+      path: "/admin",
+      element: <StaffOnly />,
+      children: [
+        {
+          element: <AdminLayout />,
+          children: [
+            { element: <Navigate to={PATH_ADMIN.audit} replace />, index: true },
+            { path: "audit", element: <AuditLogPage /> },
+            { path: "*", element: <Navigate to="/404" replace /> },
+          ],
+        },
       ],
     },
     { path: "/setup", element: <SetupPage /> },
@@ -78,6 +94,10 @@ const ForgotPasswordPage = Loadable(
 const ResetPasswordPage = Loadable(
   lazy(() => import("@/pages/auth/ResetPassword"))
 );
+
+// admin pages, fetched only once the guard has let someone through
+const AdminLayout = Loadable(lazy(() => import("@/layouts/admin")));
+const AuditLogPage = Loadable(lazy(() => import("@/pages/admin/AuditLog")));
 
 // docs pages
 const TnCPage = Loadable(lazy(() => import("@/pages/docs/TnC")));
