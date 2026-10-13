@@ -1,5 +1,11 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "🚩",
+      "title": "Report a message",
+      "text": "Report a message from its menu. The report includes the messages around it from both sides, and you see what is sent before you send it."
+    }
+  ],
   "releases": [
     {
       "version": "2.1.0",

@@ -1,9 +1,9 @@
 // a control character nobody can type marks structured content, so messages written before it stay plain text
 const STRUCTURED = "\u0001";
 
-export const encodePayload = ({ text = "", mentions, contact, statusQuote, emojiScale }) =>
-  mentions?.length || contact || statusQuote || emojiScale
-    ? STRUCTURED + JSON.stringify({ text, mentions, contact, statusQuote, emojiScale })
+export const encodePayload = ({ text = "", mentions, contact, statusQuote, emojiScale, frankingKey }) =>
+  mentions?.length || contact || statusQuote || emojiScale || frankingKey
+    ? STRUCTURED + JSON.stringify({ text, mentions, contact, statusQuote, emojiScale, frankingKey })
     : text;
 
 export const decodePayload = (plaintext) => {

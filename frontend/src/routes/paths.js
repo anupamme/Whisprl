@@ -27,6 +27,15 @@ export const PATH_AUTH = {
 
 export const PATH_SETUP = path(ROOTS_DASHBOARD, "setup");
 
+export const PATH_ADMIN = {
+  root: path(ROOTS_DASHBOARD, "admin"),
+  overview: path(ROOTS_DASHBOARD, "admin/overview"),
+  people: path(ROOTS_DASHBOARD, "admin/people"),
+  reports: path(ROOTS_DASHBOARD, "admin/reports"),
+  audit: path(ROOTS_DASHBOARD, "admin/audit"),
+  team: path(ROOTS_DASHBOARD, "admin/team"),
+};
+
 export const PATH_DOCS = {
   root: ROOTS_DASHBOARD,
   general: {

@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import app from "#app.js";
 import { initializeSocket } from "#socket.js";
 import { sweepExpiredMessages } from "#src/services/disappearingService.js";
+import { sweepOldEvidence } from "#src/services/reportQueueService.js";
 import { dropKeylessSessions } from "#src/services/sessionService.js";
 import { sweepExpiredStatuses } from "#src/services/statusService.js";
 import { clearDefaultStatuses, giveEveryoneACoverStyle } from "#src/services/userService.js";
@@ -42,6 +43,7 @@ mongoose
     setInterval(() => {
       sweepExpiredMessages(app.get("io")).catch(sweepFailed);
       sweepExpiredStatuses().catch(sweepFailed);
+      sweepOldEvidence().catch(sweepFailed);
     }, SWEEP_EVERY_MS);
   })
   .catch((err) => {

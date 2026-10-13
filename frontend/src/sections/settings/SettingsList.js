@@ -1,14 +1,16 @@
 import { Box, ButtonBase, Stack, Switch, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { CaretRight, MoonStars, SignOut } from "phosphor-react";
+import { CaretRight, MoonStars, ShieldStar, SignOut } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import Wordmark from "@/components/Wordmark";
 import useSettings from "@/hooks/useSettings";
 import { LogoutUser } from "@/redux/slices/actions/authActions";
+import { PATH_ADMIN } from "@/routes/paths";
 import { CATEGORIES, PROFILE, settingsPathOf } from "@/sections/settings/settingsRoute";
 import getAvatar from "@/utils/avatars";
+import { isStaff } from "@/utils/roles";
 
 const GROUPS = [...new Set(CATEGORIES.map((category) => category.group))].map((group) => CATEGORIES.filter((category) => category.group === group));
 
@@ -69,6 +71,18 @@ const ThemeRow = () => {
   );
 };
 
+const AdminRow = () => {
+  const role = useSelector((state) => state.user.user.role);
+  if (!isStaff(role)) return null;
+  return (
+    <ButtonBase component={Link} to={PATH_ADMIN.root} sx={{ ...rowLook(false), py: 1 }}>
+      <Tile icon={ShieldStar} tint="chat.rail" color="primary.glow" />
+      <Typography sx={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600 }}>Admin panel</Typography>
+      <CaretRight size={16} weight="bold" />
+    </ButtonBase>
+  );
+};
+
 const LogOutRow = () => {
   const dispatch = useDispatch();
   return (
@@ -104,6 +118,7 @@ const SettingsList = ({ current, isWide }) => (
       ))}
     </Box>
     <Box sx={{ px: 1, py: 1.25, borderTop: 1, borderColor: "divider" }}>
+      <AdminRow />
       <LogOutRow />
     </Box>
   </Stack>

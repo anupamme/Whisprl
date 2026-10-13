@@ -18,6 +18,81 @@ scripts/check.sh                             # the gate
 Run the gate before every commit and **gate on its exit code**, not on a read of its output. A
 pipe into `tail` or `grep` reports the exit code of the pipe, so a failed build looks green.
 
+## Staff roles
+
+`OWNER_EMAIL` in `backend/.env` names the one account that owns Whisprl. It is read on every
+request rather than stored, so nothing inside the app can hand ownership to another account,
+and changing the environment is the only way to move it. The account still has to exist and
+be verified; until then nobody is the owner. Every other account is a `user` or an `admin`.
+
+An admin can do only what the owner ticked for them, from six permissions in
+`PERMISSIONS` (`userModel.js`): `overview`, `people`, `reports`, `suspend`, `ban` and
+`audit`. The owner holds all six plus `team`, which no admin can be given, so nobody but the
+owner can add admins or change what they can do. `permissionsOf` works this out, and the
+session user carries the result so the panel can hide what someone cannot use.
+
+Staff reach the admin panel at `/admin`, which also has a row in Settings that only staff see.
+
+- **The server is what keeps the panel private.** Every `/api/admin` route sits behind
+  `protect` and `staffOnly`, and anyone who is not staff gets the same 404 as an address that
+  does not exist. The route itself is no secret, since the code is public.
+- **Each route checks its own permission.** `allow(permission)` refuses anything outside an
+  admin's permissions with a 403, whatever the panel shows. Lifting a suspension needs
+  `suspend` and lifting a ban needs `ban`, so the restore route checks inside the service,
+  where the account is known.
+- **The admin code loads only for staff.** Its layout and pages are lazy chunks behind the
+  `StaffOnly` guard, so nobody else's browser downloads them.
+- **An account is active on any day it opened Whisprl.** Every new session and every token
+  renewal (which every page load makes) records one row per account per UTC day in
+  `activities`, and the overview's active counts read those rows.
+- **Suspending and banning shut an account out at once.** Both end every session and
+  disconnect every socket, and `findSessionUser` refuses them on each later request, so a
+  token still in flight cannot be used. A suspension names the day it ends.
+- **Suspending, banning and restoring email the person, with the reason staff gave.** The
+  action dialog says so. The email is sent after the action and never holds it up: a failed
+  send is logged and the action stands.
+- **A ban writes the placeholder in rather than hiding the account on read.** `populate`
+  skips query middleware, so masking on read missed most of the places a person is shown.
+  Banning moves the name, username, photo, cover and status line into `hiddenProfile` and
+  writes "Deleted account" over them; restoring puts them back. Staff pages read
+  `hiddenProfile` to show who it really is.
+- **Every staff action records an audit entry** through `recordAction`, and asks for the
+  acting person's passkey first. Staff without a passkey are told to add one in Settings:
+  there is no fallback, since a weaker second path would set the bar.
+- **Staff cannot suspend or ban staff**, or themselves. An admin has to be removed from the
+  team before anything can be done to their account.
+- **The Team page is the owner's.** It adds an admin by the email they log in with, changes
+  what they can do, and removes them, each with a reason and the owner's passkey. The audit
+  entry records the permissions granted.
+
+## Reports
+
+A report names a person, a chat, a group or an update. What staff can do with it depends on
+what the server is able to see.
+
+- **Already visible:** profile photos and covers, a group's name, picture and members, and
+  updates shared with everyone, which are stored as they are. The queue shows these directly.
+- **Never visible:** messages, and updates meant for particular people. The only way staff can
+  read those is if the reporter's own device decrypts them and sends them, which the report
+  dialog says plainly before anything is sent.
+- **What a report attaches:** the messages around the reported one, from both sides, with the
+  key for each attached file. The admin page decrypts those files in the browser, so the
+  server never holds a plain copy. Attached messages are deleted 90 days after a report
+  closes, swept alongside expired messages and statuses.
+
+### Franking: proving an attached message is real
+
+A reporter sends plaintext, so without a check they could invent a conversation. Every message
+is sent with a random key sealed inside it and an HMAC of the payload under that key stored in
+the clear as `franking`. Neither half says anything on its own. On a report the plaintext comes
+back, the server takes the key out of it, recomputes the HMAC and compares, and each attached
+message is stored as `verified`, `failed`, or `unchecked` for one sent before franking existed.
+`unchecked` is not the same as `failed`, and the queue says which it is.
+
+An edit is franked again with a fresh key, and the new fingerprint replaces the old one. An edit
+that arrives without one clears the stored fingerprint, so the message reads as `unchecked`
+rather than failing against words that are no longer there.
+
 ## Versioning
 
 `frontend/package.json` is the source of truth. `scripts/release.sh` writes each new
