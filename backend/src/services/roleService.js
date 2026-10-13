@@ -1,7 +1,11 @@
 import { PERMISSIONS } from "#src/models/userModel.js";
 import { normalizeEmail } from "#src/utils/accountRules.js";
 
-export const roleOf = (user) => (user.email === normalizeEmail(process.env.OWNER_EMAIL) ? "owner" : user.role);
+// an account made before roles existed has no stored role, and anything but "admin" must read as an ordinary user
+export const roleOf = (user) => {
+  if (user.email === normalizeEmail(process.env.OWNER_EMAIL)) return "owner";
+  return user.role === "admin" ? "admin" : "user";
+};
 
 export const isStaff = (user) => roleOf(user) !== "user";
 

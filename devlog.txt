@@ -39,5 +39,6 @@
     - The rebrand email carries a collage of real app screenshots, served from Cloudinary under email-media/ by scripts/uploadEmailMedia.js
 
   - Internal:
+    - An account with no stored role is read as an ordinary user everywhere, including when it is read without Mongoose's defaults, so it can never pass the staff check
     - What's new now announces the quick emoji button, status swipes and reporting a message
     - Reports keep a fingerprint of each message, checked when reported, so a reported message can be shown to be the real one

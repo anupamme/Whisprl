@@ -25,6 +25,11 @@ request rather than stored, so nothing inside the app can hand ownership to anot
 and changing the environment is the only way to move it. The account still has to exist and
 be verified; until then nobody is the owner. Every other account is a `user` or an `admin`.
 
+`roleOf` is the one place a role is decided, and it only ever answers `owner`, `admin` or
+`user`. Most accounts predate the field and have no stored role at all, and a record read
+without Mongoose's defaults (a `.lean()` query) arrives with `role` undefined, so the staff
+check must not be written as "anything but user": that would let every old account through.
+
 An admin can do only what the owner ticked for them, from six permissions in
 `PERMISSIONS` (`userModel.js`): `overview`, `people`, `reports`, `suspend`, `ban` and
 `audit`. The owner holds all six plus `team`, which no admin can be given, so nobody but the
