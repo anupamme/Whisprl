@@ -33,17 +33,17 @@ export const assertNotShutOut = (user) => {
 
 const NOTICES = {
   suspended: (until) => ({
-    subject: "Whisprl - Your account is suspended",
+    subject: "Your Whisprl account is suspended",
     heading: "Your account is suspended",
     body: `Your Whisprl account is suspended until ${endsOn(until)}, and you have been logged out everywhere. You can log in again once it ends.`,
   }),
   banned: () => ({
-    subject: "Whisprl - Your account is banned",
+    subject: "Your Whisprl account is banned",
     heading: "Your account is banned",
     body: "Your Whisprl account is banned, and you have been logged out everywhere. You will not be able to log in again.",
   }),
   restored: () => ({
-    subject: "Whisprl - Your account is back",
+    subject: "Your Whisprl account is back",
     heading: "Your account is back",
     body: "Your Whisprl account is no longer suspended or banned, so you can log in again.",
   }),

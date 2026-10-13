@@ -93,6 +93,70 @@ An edit is franked again with a fresh key, and the new fingerprint replaces the 
 that arrives without one clears the stored fingerprint, so the message reads as `unchecked`
 rather than failing against words that are no longer there.
 
+## Emails
+
+Every email is built from one shell in `backend/src/templates/mail/layout.js`, so the four
+templates differ only in their content. A template returns `{ html, text }`: the plain-text
+half is not optional, because a message with no text part is one of the oldest spam signals
+there is. `sendMail` passes both to Nodemailer, which sends them as one multipart message.
+
+- **The header band is navy in both colour schemes**, like the app's rail. That is what lets
+  one logo work everywhere: an image that has to look right on white and on near-black needs
+  two files and a swap, and this needs neither.
+- **Dark mode is handled three times over**, because clients disagree on how to do it. A
+  `prefers-color-scheme` block covers Apple Mail and iOS, `[data-ogsc]` selectors cover
+  Outlook, and anything that ignores both gets the light design. Gmail's apps invert colours
+  themselves and cannot be told not to, so the palette is chosen to survive being inverted.
+- **Links are recoloured in dark mode, and the button is put back.** A blanket rule on `a`
+  turns every link to the night accent, which would leave the call to action unreadable on its
+  own accent, so `.cta a` is forced back to white after it.
+- **Every piece of text passes WCAG AA** against whatever sits behind it, in both schemes. The
+  opt-out line especially: faint small print is both unreadable and something filters look for.
+- **Images are served from Cloudinary**, the same account the app already uploads to, under
+  `email-media/`. The pictures themselves live in the repo at
+  `backend/src/templates/mail/media/`, and `node scripts/uploadEmailMedia.js` pushes them up
+  under a fixed name each, so the address never changes and a template never has to be edited
+  to pick up a new picture. Keeping them off `frontend/public/` means an email does not wait
+  on a frontend deploy to look right, and the pictures do not ship in the app's bundle.
+- **No inbox plays a video.** `<video>` survives in Apple Mail and nowhere else, so the only
+  thing that moves in an email is an animated GIF, and Outlook shows just its first frame. A
+  three second clip of the showcase video came to 524KB at the smallest size still worth
+  looking at. The campaign carries a still collage instead, at 114KB for five panels rather
+  than 524KB for three seconds of one. The video belongs where video plays: the site, a post,
+  a store listing.
+- **The collage is the real app, not a mockup.** `media/collage.jpg` is built from screenshots
+  driven through the running app at phone width: a status playing with
+  its progress bars, a voice note with its waveform and speed control, a conversation with a
+  quoted reply and delivery ticks, a friend request carrying its note, and the chat list with
+  a group in it. Each panel is cropped to the part that matters, because a whole phone screen
+  is unreadable at the width an email gives it. Rebuild it the same way rather than touching
+  it up, so it never claims the app looks like something it does not.
+
+### The rebrand campaign
+
+`backend/scripts/sendRebrand.js` sends the one-off note to people who signed up while the app
+was still called TwinkConnect: verified accounts created before 2026-10-04.
+
+```sh
+node scripts/sendRebrand.js            # dry run, counts only, sends nothing
+node scripts/sendRebrand.js --test     # one copy to OWNER_EMAIL
+node scripts/sendRebrand.js --send     # the rest, oldest account first
+```
+
+- **It never writes to the database**, and it never prints an address.
+- **A dry run is the default.** Sending takes `--send`, and `--test` first is the habit.
+- **It sends from `CAMPAIGN_MAIL_USER`, never `MAIL_USER`**, and refuses to run without it.
+  Codes and reset links have to keep arriving even if this one-off gets spam reports, which
+  means it cannot go out from the same mailbox.
+- **Everyone it reaches is written to `backend/.rebrand-sent.log`**, which is ignored by git.
+  A rerun skips them, so a stop halfway costs nothing. Gmail takes about 500 a day, so a
+  larger list goes out over several days using that same log.
+- **It stops on the first error** rather than carrying on through a broken run, and waits a few
+  seconds between messages.
+- **Release before sending.** Not for the pictures, which are already on Cloudinary, but
+  because the mail describes what the app does. Send it before the release and it is
+  describing things the reader cannot find yet.
+
 ## Versioning
 
 `frontend/package.json` is the source of truth. `scripts/release.sh` writes each new
@@ -140,7 +204,7 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 - **`rc`** publishes nothing either.
 - **Merging into `production` publishes** a GitHub Release tagged `v<version>`, with that version's
   changelog section as its notes. It skips that if the tag already exists, so an ordinary merge
-  that did not bump the version cannot cut a duplicate. Netlify and Render deploy from the
+  that did not bump the version cannot cut a duplicate. Netlify and Northflank deploy from the
   branches themselves, so no build is attached.
 - **The `skip release` label** on an `rc` into `production` PR turns off the release-ready
   checks, for a merge that is deliberately not a release.
