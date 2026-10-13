@@ -1,20 +1,145 @@
-> [!IMPORTANT]
-> Please leave a ⭐ if you like this project.
+<div align="center">
 
-# Whisprl 😺
+<img src="https://res.cloudinary.com/ecombidding/image/upload/v1791568414/portfolio/projects/whisprl-cover.png" alt="Whisprl" />
 
-A Real-Time web-based MERN Chat App by Vaibhaw Mishra.
-{ Development in Progress }
+# Whisprl
 
-![Whisprl](https://res.cloudinary.com/ecombidding/image/upload/v1791568414/portfolio/projects/whisprl-cover.png)
+### The real-time chat app for you and your friends
 
-## ✅ Site Status
+Message friends and groups the moment you think of them, and share photos, videos and status
+updates with them, all end-to-end encrypted. Free, open source, and right in your browser.
 
-Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
- > [!TIP]
+**[Open Whisprl](https://whisprl.netlify.app)**&nbsp; · &nbsp;[What's new](CHANGELOG.md)&nbsp; · &nbsp;[Terms](https://whisprl.netlify.app/docs/tnc)
+
 [![Netlify Status](https://api.netlify.com/api/v1/badges/11d93069-5655-4db9-b73d-b34de9c5deab/deploy-status)](https://app.netlify.com/sites/whisprl/deploys)
 
-## 💻 Tech Stack
+</div>
+
+---
+
+## A look around
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/desktop/chat.jpg" alt="A Whisprl conversation with photos, a voice note and a reaction" />
+      <p><b>Chats that keep up</b><br/>
+      Reply, react, edit and pin. Send photos, voice notes and files. Everything is sealed on
+      your device before it leaves.</p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/desktop/group.jpg" alt="A Whisprl group chat with a mention, a photo and a reaction" />
+      <p><b>Groups of up to 32</b><br/>
+      Mention anyone with @, see who has read what, and share photos with everyone at once.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/desktop/status.jpg" alt="A Whisprl status update with drawing and text on a photo" />
+      <p><b>Status updates, gone in 24 hours</b><br/>
+      Share a photo, video or note. Draw on it, write on it, add stickers and filters, and see
+      exactly who looked.</p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/desktop/contacts.jpg" alt="The Whisprl contacts page" />
+      <p><b>Find your people</b><br/>
+      Search everyone by name or @username, say hello in your friend request, and never miss a
+      birthday.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/desktop/profile.jpg" alt="A Whisprl profile page" />
+      <p><b>A profile worth sharing</b><br/>
+      One page your friends see, with its own address and a QR code to pass around.</p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/screenshots/desktop/welcome.jpg" alt="The Whisprl welcome page" />
+      <p><b>Nothing to install</b><br/>
+      It runs in the browser, on a laptop or a phone. Make an account and start talking.</p>
+    </td>
+  </tr>
+</table>
+
+### On a phone
+
+<p align="center">
+  <img src="docs/screenshots/mobile/chat.jpg" width="20%" alt="Whisprl chat on a phone" />
+  <img src="docs/screenshots/mobile/group.jpg" width="20%" alt="Whisprl group chat on a phone" />
+  <img src="docs/screenshots/mobile/status.jpg" width="20%" alt="A Whisprl status on a phone" />
+  <img src="docs/screenshots/mobile/requests.jpg" width="20%" alt="A friend request with a note on a phone" />
+</p>
+
+---
+
+## What you can do
+
+**Talk**
+
+- Messages that arrive the moment you send them, with sent, delivered and seen receipts
+- Reply to anything, react with an emoji, edit for 15 minutes, delete for everyone, pin up to three
+- Voice messages up to 15 minutes, played back at 1x, 1.5x or 2x
+- Photos, videos and documents, several at a time, with a caption
+- Photos and videos that can be opened only once, and messages that disappear after a day, a week or 90 days
+- Group chats with up to 32 friends, with @mentions and per-person read receipts
+- Search inside a chat and jump straight to any result
+
+**Share**
+
+- Status updates that vanish after 24 hours, shared with all your friends or only some
+- Write on them, draw on them, add stickers, emoji and filters, or post plain text on a gradient
+- See who viewed each one, and reply to a friend's update straight from it
+- Discover, for updates people have shared with everyone on Whisprl
+
+**Stay in touch**
+
+- Find anyone by name or @username, and see people you may know
+- Add a note to your friend request so they know who is asking
+- Birthdays this week, with the day and month shown to friends and never the year
+- Share your profile with a link or a QR code
+
+**Keep it yours**
+
+- Light and dark, six accent colours, and chat wallpapers
+- Sign in with a passkey, or with Google, GitHub or LinkedIn
+- Seven languages
+- Mute, archive, favourite or block, and report anything that needs it
+
+---
+
+## Your messages are yours
+
+Whisprl is end-to-end encrypted. Messages, photos, videos, voice notes, reactions and status
+updates are locked on your device before they are sent, and only the people you sent them to
+can open them. The server stores what it cannot read.
+
+- **A recovery key** is made when encryption is turned on, so you can open your messages on a
+  new browser. **Add a passkey** and you rarely need it.
+- **Files are encrypted too**, before they ever reach storage.
+- **Reporting a message** is the one way staff can read anything, and only because your own
+  device decrypts and sends it. The app tells you exactly what is being sent before it goes.
+
+---
+
+## Credit where it is due
+
+Built by [Vaibhaw Mishra](https://github.com/itsvaibhavmishra). If you like it, a ⭐ is
+genuinely appreciated.
+
+## Licence
+
+Whisprl is dedicated to the public domain under [CC0 1.0](LICENSE): use it, change it, ship
+it, no permission needed. The two sound files noted under **Sound credits** below keep their
+own CC BY-SA 4.0 licence.
+
+---
+
+<details>
+<summary><b>For developers</b></summary>
+
+<br/>
+
+### Built with
 
 ![MongoDB](https://img.shields.io/badge/mongodb-001E2B?style=for-the-badge&logo=mongodb&logoColor=00ED64)
 ![Express](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
@@ -27,156 +152,46 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 ![Cloudinary](https://img.shields.io/static/v1?style=for-the-badge&message=Cloudinary&color=3448C5&logo=Cloudinary&logoColor=FFFFFF&label=)
 ![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-%23EC5990.svg?style=for-the-badge&logo=reacthookform&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
-![Swiper](https://img.shields.io/static/v1?style=for-the-badge&message=Swiper&color=6332F6&logo=Swiper&logoColor=FFFFFF&label=)
 ![Framer Motion](https://img.shields.io/static/v1?style=for-the-badge&message=Framer+Motion&color=242424&logo=Framer&logoColor=FFFFFF&label=)
-![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)
-![GitHub](https://img.shields.io/static/v1?style=for-the-badge&message=GitHub&color=181717&logo=GitHub&logoColor=FFFFFF&label=)
 ![NodeMailer](https://img.shields.io/static/v1?style=for-the-badge&message=NodeMailer&color=1CB674&logo=Node.js&logoColor=FFFFFF&label=)
-![Google Analytics](https://img.shields.io/static/v1?style=for-the-badge&message=Google+Analytics&color=E37400&logo=Google+Analytics&logoColor=FFFFFF&label=)
 
-## 📃 Features List
+Two packages, not a workspace: `frontend/` (React 18, MUI, Redux Toolkit) and `backend/`
+(Express, Socket.io, MongoDB). Each has its own `package.json`.
 
-#### 👦🏻 User Features
+### Running it
 
-    - Real-time one-to-one chat
+Both packages need their own `.env`; each ships a `.env copy` showing the shape.
 
-    - reCAPTCHA support
+```sh
+# backend, on port 8200
+cd backend && npm install && npm run dev
 
-    - Robust authentication system with dynamic flow
-
-    - OTP based verification and password reset functionality
-
-    - 3 Social logins methods (Google, GitHub & LinkedIn)
-
-    - Disposable email check
-
-    - Highly responsive UI
-
-    - Dark/Light theme support
-
-    - 6 different color presets
-
-    - Custom movable sidebar for theme settings
-
-    - Profile section with image cropper & drag-n-drop support
-
-    - Search friends with infinite scrolling
-
-    - Emoji support
-
-    - Real-time online status
-
-    - Real-time typing... message
-
-    - Dynamic friends contact menu
-
-#### 🧑🏻‍💻 Developer Features
-
-<b>Backend:</b>
-
-    - Security options (rate limits on each route, XSS Protection, Sanitization, URL Encoding & more)
-
-    - Dynamic server & routes error handling
-
-    - Dedicted folder structure
-
-    - JWT Middlewares for both APIs & Socket based requests
-
-    - Cloudinary file upload system with auto folder structuring
-
-    - Short-lived access tokens, renewed by signing a fresh challenge with a key each browser keeps and cannot export, so no cookies
-
-    - Structured DB with pre save & validations
-
-    - And much more
-
-<b>Frontend:</b>
-
-    - Custom axios setup for easier API calling
-
-    - Custom error interceptors for axios error handlings
-
-    - Redux toolkit with persist
-
-    - Custom hooks
-
-    - Silent token renewal shared by every request and the socket
-
-    - Google Ananlytics support
-
-    - Dynamic routing with lazy loading
-
-    - Custom loader
-
-    - Customized theme with dedicated folder structuring
-
-    - React Hook Form with Yup form validations
-
-    - Custom utils folder
-
-    - And much more
-
-## 👾 Installation
-
-### Bankend:
-
-From root directory, move to the backend using command
-
-```bash
-$ cd backend/
+# frontend, on port 3200
+cd frontend && npm install -f && npm start
 ```
 
-Install dependencies for server
+`npm install` in `frontend/` needs `-f` because its peer dependencies conflict. CI uses
+`npm ci`, which does not.
 
-```bash
-$ npm install
+### Before you push
+
+```sh
+scripts/check.sh
 ```
 
-Setup .env using `.env copy` file
+Loads every backend module without a database, runs the frontend tests and builds the
+frontend, so it behaves the same on your machine as in CI.
 
-```bash
-$ located in backend/
-```
+[`docs/development.md`](docs/development.md) covers the branches, the release flow, staff
+roles and how the emails are built.
 
-Start the backend using nodemon
+</details>
 
-```bash
-$ npm start
-```
 
-## Frontend:
+<details>
+<summary><b>Folder structure</b></summary>
 
-From root directory, move to the frontend using command
 
-```bash
-$ cd frontend/
-```
-
-Install dependencies for frontend
-
-```bash
-$ npm install -f
-```
-
-Setup .env using `.env copy` file
-
-```bash
-$ located in frontend/
-```
-
-Runs frontend on localhost(React App)
-
-```bash
-$ npm start
-```
-
-Creates an optimized production build
-
-```bash
-$ npm run build
-```
-
-## 🪜 Folder Structure
 
   ```
 ├── .github/
@@ -799,6 +814,8 @@ $ npm run build
 │   ├── package.json
 │   ├── README.md
 ```
+</details>
+
 </details>
 <br/>
 

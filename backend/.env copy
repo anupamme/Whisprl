@@ -13,11 +13,6 @@ FRONT_URL = "http://localhost:3000"
 MAIL_USER = ''
 MAIL_PASS = ''
 
-# The one-off rebrand campaign, sent by backend/scripts/sendRebrand.js.
-# A separate mailbox on purpose, so spam reports never reach MAIL_USER above.
-CAMPAIGN_MAIL_USER = ""
-CAMPAIGN_MAIL_PASS = ""
-
 # Cloudinary Config (Can be skipped but required for image uploads)
 CLOUDINARY_CLOUD_NAME = ""
 CLOUDINARY_API_KEY = ""

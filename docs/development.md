@@ -137,31 +137,6 @@ there is. `sendMail` passes both to Nodemailer, which sends them as one multipar
   is unreadable at the width an email gives it. Rebuild it the same way rather than touching
   it up, so it never claims the app looks like something it does not.
 
-### The rebrand campaign
-
-`backend/scripts/sendRebrand.js` sends the one-off note to people who signed up while the app
-was still called TwinkConnect: verified accounts created before 2026-10-04.
-
-```sh
-node scripts/sendRebrand.js            # dry run, counts only, sends nothing
-node scripts/sendRebrand.js --test     # one copy to OWNER_EMAIL
-node scripts/sendRebrand.js --send     # the rest, oldest account first
-```
-
-- **It never writes to the database**, and it never prints an address.
-- **A dry run is the default.** Sending takes `--send`, and `--test` first is the habit.
-- **It sends from `CAMPAIGN_MAIL_USER`, never `MAIL_USER`**, and refuses to run without it.
-  Codes and reset links have to keep arriving even if this one-off gets spam reports, which
-  means it cannot go out from the same mailbox.
-- **Everyone it reaches is written to `backend/.rebrand-sent.log`**, which is ignored by git.
-  A rerun skips them, so a stop halfway costs nothing. Gmail takes about 500 a day, so a
-  larger list goes out over several days using that same log.
-- **It stops on the first error** rather than carrying on through a broken run, and waits a few
-  seconds between messages.
-- **Release before sending.** Not for the pictures, which are already on Cloudinary, but
-  because the mail describes what the app does. Send it before the release and it is
-  describing things the reader cannot find yet.
-
 ## Versioning
 
 `frontend/package.json` is the source of truth. `scripts/release.sh` writes each new
