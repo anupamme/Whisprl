@@ -39,4 +39,5 @@
     - The rebrand email carries a collage of real app screenshots, served from Cloudinary under email-media/ by scripts/uploadEmailMedia.js
 
   - Internal:
+    - What's new now announces the quick emoji button, status swipes and reporting a message
     - Reports keep a fingerprint of each message, checked when reported, so a reported message can be shown to be the real one

@@ -1,9 +1,19 @@
 {
   "upcoming": [
     {
+      "emoji": "😺",
+      "title": "Quick emoji",
+      "text": "Tap the emoji beside the message box to send it, or hold to send it bigger. Pick yours, and your six reactions, for each chat from its details panel."
+    },
+    {
+      "emoji": "👆",
+      "title": "Swipe a status",
+      "text": "Swipe down to close a status, or up to reply. On your own update, swipe up to see who has watched."
+    },
+    {
       "emoji": "🚩",
       "title": "Report a message",
-      "text": "Report a message from its menu. The report includes the messages around it from both sides, and you see what is sent before you send it."
+      "text": "Report a message from its menu. The report includes the messages around it, and the dialog tells you what is sent before it goes."
     }
   ],
   "releases": [
