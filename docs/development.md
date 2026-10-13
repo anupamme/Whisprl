@@ -25,11 +25,21 @@ request rather than stored, so nothing inside the app can hand ownership to anot
 and changing the environment is the only way to move it. The account still has to exist and
 be verified; until then nobody is the owner. Every other account is a `user` or an `admin`.
 
+An admin can do only what the owner ticked for them, from six permissions in
+`PERMISSIONS` (`userModel.js`): `overview`, `people`, `reports`, `suspend`, `ban` and
+`audit`. The owner holds all six plus `team`, which no admin can be given, so nobody but the
+owner can add admins or change what they can do. `permissionsOf` works this out, and the
+session user carries the result so the panel can hide what someone cannot use.
+
 Staff reach the admin panel at `/admin`, which also has a row in Settings that only staff see.
 
 - **The server is what keeps the panel private.** Every `/api/admin` route sits behind
   `protect` and `staffOnly`, and anyone who is not staff gets the same 404 as an address that
   does not exist. The route itself is no secret, since the code is public.
+- **Each route checks its own permission.** `allow(permission)` refuses anything outside an
+  admin's permissions with a 403, whatever the panel shows. Lifting a suspension needs
+  `suspend` and lifting a ban needs `ban`, so the restore route checks inside the service,
+  where the account is known.
 - **The admin code loads only for staff.** Its layout and pages are lazy chunks behind the
   `StaffOnly` guard, so nobody else's browser downloads them.
 - **An account is active on any day it opened Whisprl.** Every new session and every token
@@ -38,6 +48,9 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
 - **Suspending and banning shut an account out at once.** Both end every session and
   disconnect every socket, and `findSessionUser` refuses them on each later request, so a
   token still in flight cannot be used. A suspension names the day it ends.
+- **Suspending, banning and restoring email the person, with the reason staff gave.** The
+  action dialog says so. The email is sent after the action and never holds it up: a failed
+  send is logged and the action stands.
 - **A ban writes the placeholder in rather than hiding the account on read.** `populate`
   skips query middleware, so masking on read missed most of the places a person is shown.
   Banning moves the name, username, photo, cover and status line into `hiddenProfile` and
@@ -46,7 +59,11 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
 - **Every staff action records an audit entry** through `recordAction`, and asks for the
   acting person's passkey first. Staff without a passkey are told to add one in Settings:
   there is no fallback, since a weaker second path would set the bar.
-- **Staff cannot suspend or ban staff**, or themselves.
+- **Staff cannot suspend or ban staff**, or themselves. An admin has to be removed from the
+  team before anything can be done to their account.
+- **The Team page is the owner's.** It adds an admin by the email they log in with, changes
+  what they can do, and removes them, each with a reason and the owner's passkey. The audit
+  entry records the permissions granted.
 
 ## Reports
 
@@ -71,6 +88,10 @@ the clear as `franking`. Neither half says anything on its own. On a report the 
 back, the server takes the key out of it, recomputes the HMAC and compares, and each attached
 message is stored as `verified`, `failed`, or `unchecked` for one sent before franking existed.
 `unchecked` is not the same as `failed`, and the queue says which it is.
+
+An edit is franked again with a fresh key, and the new fingerprint replaces the old one. An edit
+that arrives without one clears the stored fingerprint, so the message reads as `unchecked`
+rather than failing against words that are no longer there.
 
 ## Versioning
 

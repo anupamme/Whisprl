@@ -33,6 +33,7 @@ export const PATH_ADMIN = {
   people: path(ROOTS_DASHBOARD, "admin/people"),
   reports: path(ROOTS_DASHBOARD, "admin/reports"),
   audit: path(ROOTS_DASHBOARD, "admin/audit"),
+  team: path(ROOTS_DASHBOARD, "admin/team"),
 };
 
 export const PATH_DOCS = {

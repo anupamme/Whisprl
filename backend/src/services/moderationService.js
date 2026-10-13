@@ -1,14 +1,16 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
+import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
 import { HIDDEN_PROFILE_FIELDS } from "#src/models/userModel.js";
-import { MAX_AUDIT_REASON } from "#src/models/auditEntryModel.js";
-import { recordAction } from "#src/services/auditService.js";
+import { assertReason, recordAction } from "#src/services/auditService.js";
+import { sendMail } from "#src/services/mailer.js";
 import { markReportActioned } from "#src/services/reportQueueService.js";
 import { endAllSessions, signOutEverywhere } from "#src/services/sessionService.js";
-import { isStaff, roleOf } from "#src/services/roleService.js";
+import { can, isStaff, roleOf } from "#src/services/roleService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
+import accountNoticeMail from "#src/templates/mail/accountNotice.js";
 
 const PAGE_SIZE = 30;
 const SEARCHED_FIELDS = ["firstName", "lastName", "username", "email"];
@@ -29,12 +31,29 @@ export const assertNotShutOut = (user) => {
   }
 };
 
-const assertReason = (reason) => {
-  const given = typeof reason === "string" ? reason.trim() : "";
-  if (!given) throw createHttpError.BadRequest("Say why you are doing this");
-  if (given.length > MAX_AUDIT_REASON) throw createHttpError.BadRequest(`Keep the reason under ${MAX_AUDIT_REASON} characters`);
-  return given;
+const NOTICES = {
+  suspended: (until) => ({
+    subject: "Whisprl - Your account is suspended",
+    heading: "Your account is suspended",
+    body: `Your Whisprl account is suspended until ${endsOn(until)}, and you have been logged out everywhere. You can log in again once it ends.`,
+  }),
+  banned: () => ({
+    subject: "Whisprl - Your account is banned",
+    heading: "Your account is banned",
+    body: "Your Whisprl account is banned, and you have been logged out everywhere. You will not be able to log in again.",
+  }),
+  restored: () => ({
+    subject: "Whisprl - Your account is back",
+    heading: "Your account is back",
+    body: "Your Whisprl account is no longer suspended or banned, so you can log in again.",
+  }),
 };
+
+// the action stands whether or not the email arrives, so a failed send is only logged
+const tellPerson = ({ email, firstName }, { subject, heading, body }, reason) =>
+  sendMail(email, subject, accountNoticeMail({ name: validator.escape(firstName), heading, body, reason: validator.escape(reason) })).catch(
+    (error) => console.error(`[moderation mail] ${error.message}`)
+  );
 
 // staff answer to the owner rather than to each other, so nobody here can act on another staff account
 const findTarget = async (actor, user_id) => {
@@ -99,6 +118,7 @@ export const suspendPerson = async (io, actor, user_id, { until, reason, reportI
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "suspended", target: target._id, reason: given });
   await markReportActioned(actor, reportId);
+  tellPerson(target, NOTICES.suspended(endsAt), given);
 };
 
 export const banPerson = async (io, actor, user_id, { reason, reportId }) => {
@@ -114,12 +134,14 @@ export const banPerson = async (io, actor, user_id, { reason, reportId }) => {
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "banned", target: target._id, reason: given });
   await markReportActioned(actor, reportId);
+  tellPerson(target, NOTICES.banned(), given);
 };
 
 export const restorePerson = async (actor, user_id, { reason }) => {
   const given = assertReason(reason);
   const target = await findTarget(actor, user_id);
   if (!isShutOut(target)) throw createHttpError.BadRequest("That account is not banned or suspended");
+  if (!can(actor, target.bannedAt ? "ban" : "suspend")) throw createHttpError.Forbidden("Your access does not include this");
 
   const { username, ...profile } = target.hiddenProfile?.toObject() ?? {};
   await UserModel.updateOne(
@@ -127,4 +149,5 @@ export const restorePerson = async (actor, user_id, { reason }) => {
     { ...profile, ...(username && { username }), $unset: { bannedAt: 1, suspendedUntil: 1, hiddenProfile: 1, ...(username ? {} : { username: 1 }) } }
   );
   await recordAction({ actor: actor._id, action: "restored", target: target._id, reason: given });
+  tellPerson({ email: target.email, firstName: profile.firstName ?? target.firstName }, NOTICES.restored(), given);
 };

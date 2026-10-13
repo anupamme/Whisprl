@@ -7,6 +7,7 @@ import { findMemberConversation, forgetReaction, memberRooms, noteReaction, popu
 import {
   deleteFilesNoLongerUsed,
   findSendableConversation,
+  isFranking,
   removeUnsentAttachment,
   toClientMessage,
   validateCipher,
@@ -24,7 +25,7 @@ const findMessage = async (message_id, filter) => {
 
 const answer = async (message, conversation) => ({ conversation, message: toClientMessage(await withQuote(message), conversation) });
 
-export const editMessage = async (message_id, user_id, cipher) => {
+export const editMessage = async (message_id, user_id, cipher, franking) => {
   const message = await findMessage(message_id, { ...STANDING, sender: user_id, attachment: { $exists: false } });
   if (Date.now() - message.createdAt.getTime() > EDIT_WINDOW_MS) {
     throw createHttpError.Forbidden("A message can be edited for 15 minutes after it is sent");
@@ -32,7 +33,8 @@ export const editMessage = async (message_id, user_id, cipher) => {
 
   const conversation = await findSendableConversation(message.conversation, user_id);
   validateCipher(cipher, conversation, user_id);
-  message.set({ cipher, editedAt: new Date() });
+  // the old fingerprint describes words that are gone, so a report would call the edit a forgery
+  message.set({ cipher, editedAt: new Date(), franking: isFranking(franking) ? franking : undefined });
   await message.save();
   return answer(message, conversation);
 };

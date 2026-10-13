@@ -8,6 +8,7 @@ const PASSWORD_COST = 12;
 
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
+export const PERMISSIONS = ["overview", "people", "reports", "suspend", "ban", "audit"];
 
 const publicKeySchema = mongoose.Schema(
   {
@@ -103,6 +104,7 @@ const userSchema = mongoose.Schema(
 
     verified: { type: Boolean, default: false },
     role: { type: String, enum: ROLES, default: "user" },
+    permissions: { type: [String], enum: PERMISSIONS, default: undefined },
 
     bannedAt: { type: Date },
     suspendedUntil: { type: Date },

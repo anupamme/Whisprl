@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack, TextField } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 
 import useIsLoading from "@/hooks/useIsLoading";
 import { BanPerson, RestorePerson, SuspendPerson } from "@/redux/slices/actions/adminActions";
 import { statusOf } from "@/sections/admin/PersonStatus";
+import { can, isStaff } from "@/utils/roles";
 
 const SUSPEND_DAYS = [1, 7, 30];
 
@@ -74,7 +75,7 @@ const ActionDialog = ({ action, person, reportId, onClose, onDone }) => {
           multiline
           minRows={2}
           label="Why"
-          placeholder="This goes in the audit log"
+          placeholder="They get this by email, and it goes in the audit log"
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           sx={{ mt: 2.5 }}
@@ -94,22 +95,27 @@ const ActionDialog = ({ action, person, reportId, onClose, onDone }) => {
 };
 
 const PersonActions = ({ person, reportId, onDone }) => {
+  const user = useSelector((state) => state.user.user);
   const [kind, setKind] = useState(null);
   const status = statusOf(person);
+  if (isStaff(person.role)) return null;
+
+  const isShutOut = status === "banned" || status === "suspended";
 
   return (
     <>
       <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
-        {status === "banned" || status === "suspended" ? (
+        {isShutOut && can(user, status === "banned" ? "ban" : "suspend") && (
           <Button size="small" variant="outlined" color="inherit" onClick={() => setKind("restore")}>
             Give access back
           </Button>
-        ) : (
+        )}
+        {!isShutOut && can(user, "suspend") && (
           <Button size="small" variant="outlined" color="inherit" onClick={() => setKind("suspend")}>
             Suspend
           </Button>
         )}
-        {status !== "banned" && (
+        {status !== "banned" && can(user, "ban") && (
           <Button size="small" variant="outlined" color="error" onClick={() => setKind("ban")}>
             Ban
           </Button>

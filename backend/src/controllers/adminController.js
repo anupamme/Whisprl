@@ -3,6 +3,7 @@ import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/servic
 import { dismissReport, listReports } from "#src/services/reportQueueService.js";
 import { assertConfirmed, confirmationOptions } from "#src/services/passkeyService.js";
 import { overviewOf } from "#src/services/overviewService.js";
+import { addAdmin, changeAccess, listTeam, removeAdmin } from "#src/services/teamService.js";
 
 // -------------------------- Overview --------------------------
 export const getOverview = async (req, res, next) => {
@@ -32,7 +33,7 @@ export const getConfirmationOptions = async (req, res, next) => {
   }
 };
 
-const actOnPerson = (act) => async (req, res, next) => {
+const withPasskey = (act) => async (req, res, next) => {
   try {
     const { confirmation, ...details } = req.body;
     await assertConfirmed(req.user, confirmation);
@@ -43,11 +44,11 @@ const actOnPerson = (act) => async (req, res, next) => {
   }
 };
 
-export const suspend = actOnPerson((req, details) => suspendPerson(req.app.get("io"), req.user, req.params.user_id, details));
+export const suspend = withPasskey((req, details) => suspendPerson(req.app.get("io"), req.user, req.params.user_id, details));
 
-export const ban = actOnPerson((req, details) => banPerson(req.app.get("io"), req.user, req.params.user_id, details));
+export const ban = withPasskey((req, details) => banPerson(req.app.get("io"), req.user, req.params.user_id, details));
 
-export const restore = actOnPerson((req, details) => restorePerson(req.user, req.params.user_id, details));
+export const restore = withPasskey((req, details) => restorePerson(req.user, req.params.user_id, details));
 
 // -------------------------- Reports --------------------------
 export const getReports = async (req, res, next) => {
@@ -77,3 +78,18 @@ export const getAuditLog = async (req, res, next) => {
     next(error);
   }
 };
+
+// -------------------------- Team --------------------------
+export const getTeam = async (req, res, next) => {
+  try {
+    return res.status(200).json({ status: "success", ...(await listTeam()) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addToTeam = withPasskey((req, details) => addAdmin(req.user, details));
+
+export const changeTeamAccess = withPasskey((req, details) => changeAccess(req.user, req.params.user_id, details));
+
+export const removeFromTeam = withPasskey((req, details) => removeAdmin(req.user, req.params.user_id, details));

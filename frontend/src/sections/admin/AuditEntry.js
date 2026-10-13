@@ -4,6 +4,7 @@ import { Scroll } from "phosphor-react";
 import useSettings from "@/hooks/useSettings";
 import getAvatar from "@/utils/avatars";
 import { formatClock } from "@/utils/formatMessageTime";
+import { permissionLabel } from "@/utils/roles";
 
 export const NODE_SIZE = 32;
 
@@ -55,6 +56,12 @@ const AuditEntry = ({ entry }) => {
           <Person label="By" person={entry.actor} />
           {entry.target && <Person label="To" person={entry.target} />}
         </Stack>
+
+        {entry.permissions && (
+          <Typography sx={{ mt: 0.75, fontSize: 13, color: "text.secondary" }}>
+            {`Can use ${entry.permissions.map(permissionLabel).join(", ")}`}
+          </Typography>
+        )}
 
         {entry.reason && (
           <Typography

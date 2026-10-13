@@ -1,21 +1,25 @@
+import { useEffect, useRef } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, Flag, ShieldStar, Users } from "phosphor-react";
+import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, Flag, IdentificationBadge, ShieldStar, Users } from "phosphor-react";
 import { useSelector } from "react-redux";
-import { Link, Outlet, matchPath, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, matchPath, useLocation } from "react-router-dom";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import Wordmark from "@/components/Wordmark";
 import { ON_RAIL } from "@/layouts/dashboard/NavRail";
 import { PATH_ADMIN, PATH_DASHBOARD } from "@/routes/paths";
+import Notice from "@/sections/admin/Notice";
 import getAvatar from "@/utils/avatars";
+import { can } from "@/utils/roles";
 
 const SIDEBAR_WIDTH = 248;
 const DESTINATIONS = [
-  { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUp },
-  { path: PATH_ADMIN.people, label: "People", Icon: Users },
-  { path: PATH_ADMIN.reports, label: "Reports", Icon: Flag },
-  { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwise },
+  { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUp, permission: "overview" },
+  { path: PATH_ADMIN.people, label: "People", Icon: Users, permission: "people" },
+  { path: PATH_ADMIN.reports, label: "Reports", Icon: Flag, permission: "reports" },
+  { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwise, permission: "audit" },
+  { path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadge, permission: "team" },
 ];
 const ROLE_BADGES = { owner: { label: "Owner", Icon: Crown }, admin: { label: "Admin", Icon: ShieldStar } };
 
@@ -63,7 +67,7 @@ const SidebarLink = ({ path, label, Icon, isActive }) => (
   </ButtonBase>
 );
 
-const Sidebar = () => {
+const Sidebar = ({ destinations }) => {
   const { pathname } = useLocation();
   const { firstName, lastName, avatar, role } = useSelector((state) => state.user.user);
 
@@ -81,7 +85,7 @@ const Sidebar = () => {
       </Stack>
 
       <Stack component="ul" spacing={0.5} sx={{ m: 0, mt: 5, p: 0, listStyle: "none" }}>
-        {DESTINATIONS.map((destination) => (
+        {destinations.map((destination) => (
           <li key={destination.path}>
             <SidebarLink {...destination} isActive={Boolean(matchPath(destination.path, pathname))} />
           </li>
@@ -113,19 +117,27 @@ const Sidebar = () => {
   );
 };
 
-const PhoneNav = () => {
+const PhoneNav = ({ destinations }) => {
   const { pathname } = useLocation();
+  const activeLink = useRef(null);
+
+  useEffect(() => {
+    activeLink.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [pathname]);
+
   return (
-    <Stack component="nav" aria-label="Admin" direction="row" spacing={0.5} sx={{ px: 1.5, pb: 1.25 }}>
-      {DESTINATIONS.map(({ path, label, Icon }) => {
+    <Stack component="nav" aria-label="Admin" direction="row" spacing={0.5} sx={{ px: 1.5, pb: 1.25, overflowX: "auto", scrollbarWidth: "none", scrollPaddingInline: 12 }}>
+      {destinations.map(({ path, label, Icon }) => {
         const isActive = Boolean(matchPath(path, pathname));
         return (
           <ButtonBase
             key={path}
+            ref={isActive ? activeLink : undefined}
             component={Link}
             to={path}
             aria-current={isActive ? "page" : undefined}
             sx={{
+              flexShrink: 0,
               gap: 0.75,
               px: 1.5,
               py: 0.75,
@@ -146,7 +158,7 @@ const PhoneNav = () => {
   );
 };
 
-const TopBar = () => {
+const TopBar = ({ destinations }) => {
   const role = useSelector((state) => state.user.user.role);
   return (
     <Box component="header" sx={{ position: "sticky", top: 0, zIndex: 2, pt: "env(safe-area-inset-top)", bgcolor: "chat.rail", color: "common.white" }}>
@@ -163,19 +175,36 @@ const TopBar = () => {
           <RoleBadge role={role} />
         </Box>
       </Stack>
-      <PhoneNav />
+      <PhoneNav destinations={destinations} />
+    </Box>
+  );
+};
+
+// the server refuses anything outside someone's permissions, so this only keeps them from landing on it
+const AllowedContent = ({ destinations }) => {
+  const { pathname } = useLocation();
+  const current = DESTINATIONS.find(({ path }) => matchPath(path, pathname));
+  const isRoot = Boolean(matchPath(PATH_ADMIN.root, pathname));
+
+  if (!isRoot && (!current || destinations.includes(current))) return <Outlet />;
+  if (destinations.length) return <Navigate to={destinations[0].path} replace />;
+  return (
+    <Box sx={{ px: { xs: 2, md: 6 }, py: { xs: 1, md: 4 } }}>
+      <Notice title="Nothing to open yet">The owner hasn't given you access to any part of the admin panel.</Notice>
     </Box>
   );
 };
 
 const AdminLayout = () => {
   const isPhone = useMediaQuery((theme) => theme.breakpoints.down("md"));
+  const user = useSelector((state) => state.user.user);
+  const destinations = DESTINATIONS.filter(({ permission }) => can(user, permission));
 
   return (
     <Stack direction={{ xs: "column", md: "row" }} sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
-      {isPhone ? <TopBar /> : <Sidebar />}
+      {isPhone ? <TopBar destinations={destinations} /> : <Sidebar destinations={destinations} />}
       <Box component="main" sx={{ flex: 1, minWidth: 0 }}>
-        <Outlet />
+        <AllowedContent destinations={destinations} />
       </Box>
     </Stack>
   );

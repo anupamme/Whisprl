@@ -9,10 +9,10 @@ import { sha256 } from "#src/utils/sha256.js";
 import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import otpMail from "#src/templates/mail/otp.js";
 import resetMail from "#src/templates/mail/reset.js";
-import { formatRemainingTime, transporter } from "#src/services/mailer.js";
+import { formatRemainingTime, sendMail } from "#src/services/mailer.js";
 import { endAllSessions, isSessionActive, sessionEnded, verifyAccessToken } from "#src/services/sessionService.js";
 import { onboardingOf } from "#src/services/onboardingService.js";
-import { roleOf } from "#src/services/roleService.js";
+import { permissionsOf, roleOf } from "#src/services/roleService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 
@@ -40,6 +40,7 @@ export const toSessionUser = async (user) => ({
   whatsNewSeen: user.whatsNewSeen ?? null,
   createdAt: user.createdAt,
   role: roleOf(user),
+  permissions: permissionsOf(user),
 });
 
 const matchesHash = (value, hash) => crypto.timingSafeEqual(Buffer.from(sha256(value)), Buffer.from(hash));
@@ -53,9 +54,9 @@ const assertCooledDown = (sentAt, what) => {
   }
 };
 
-const sendMail = async (to, subject, html) => {
+const mailOrFail = async (to, subject, html) => {
   try {
-    await transporter.sendMail({ from: `Whisprl <${process.env.MAIL_USER}>`, to, subject, html });
+    await sendMail(to, subject, html);
   } catch {
     throw createHttpError(502, "We could not send the email, please try again", { expose: true });
   }
@@ -132,7 +133,7 @@ export const sendVerificationCode = async (user) => {
   await user.save();
 
   try {
-    await sendMail(user.email, "Whisprl - Here's your OTP", otpMail(validator.escape(user.firstName), code));
+    await mailOrFail(user.email, "Whisprl - Here's your OTP", otpMail(validator.escape(user.firstName), code));
   } catch (error) {
     user.verification = undefined;
     await user.save();
@@ -200,7 +201,7 @@ export const sendPasswordReset = async (email) => {
 
   const resetUrl = `${process.env.FRONT_URL}/auth/reset-password/?code=${token}`;
   try {
-    await sendMail(user.email, "Whisprl - Here's your Password Reset Link", resetMail(validator.escape(user.firstName), resetUrl));
+    await mailOrFail(user.email, "Whisprl - Here's your Password Reset Link", resetMail(validator.escape(user.firstName), resetUrl));
   } catch (error) {
     user.passwordReset = undefined;
     await user.save();

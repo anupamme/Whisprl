@@ -9,6 +9,7 @@ const auditEntrySchema = mongoose.Schema(
     action: { type: String, required: true },
     target: { type: mongoose.Schema.ObjectId, ref: "User" },
     reason: { type: String, trim: true, maxlength: MAX_AUDIT_REASON },
+    permissions: { type: [String], default: undefined },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );

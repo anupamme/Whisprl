@@ -17,12 +17,15 @@ const confirmed = async () => {
   return response;
 };
 
-const actOnPerson = (path, done) =>
-  createApiThunk(`admin/${path}`, async ({ userId, ...details }) => {
-    const { data } = await axios.put(`/admin/people/${userId}/${path}`, { ...details, confirmation: await confirmed() });
+const withPasskey = (type, send, done) =>
+  createApiThunk(type, async (args) => {
+    const { data } = await send(args, await confirmed());
     notify({ severity: "success", message: done });
     return data;
   });
+
+const actOnPerson = (path, done) =>
+  withPasskey(`admin/${path}`, ({ userId, ...details }, confirmation) => axios.put(`/admin/people/${userId}/${path}`, { ...details, confirmation }), done);
 
 export const SuspendPerson = actOnPerson("suspend", "Suspended, and their sessions are closed");
 export const BanPerson = actOnPerson("ban", "Banned, and their sessions are closed");
@@ -36,6 +39,23 @@ export const DismissReport = createApiThunk("admin/dismiss", async ({ reportId, 
   notify({ severity: "success", message: "Dismissed" });
   return data;
 });
+
+// ------------- Team Thunks -------------
+export const GetTeam = createApiThunk("admin/team", async () => (await axios.get("/admin/team")).data);
+
+export const AddAdmin = withPasskey("admin/team/add", (details, confirmation) => axios.post("/admin/team", { ...details, confirmation }), "Added to the team");
+
+export const ChangeAccess = withPasskey(
+  "admin/team/change",
+  ({ userId, ...details }, confirmation) => axios.put(`/admin/team/${userId}`, { ...details, confirmation }),
+  "Their access is updated"
+);
+
+export const RemoveAdmin = withPasskey(
+  "admin/team/remove",
+  ({ userId, ...details }, confirmation) => axios.put(`/admin/team/${userId}/remove`, { ...details, confirmation }),
+  "Removed from the team"
+);
 
 // ------------- Audit Log Thunk -------------
 export const GetAuditLog = createApiThunk("admin/audit", async (before) => (await axios.get("/admin/audit", { params: { before } })).data);

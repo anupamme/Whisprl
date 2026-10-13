@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { GetAuditLog, GetOverview, GetPeople, GetReports } from "@/redux/slices/actions/adminActions";
+import { GetAuditLog, GetOverview, GetPeople, GetReports, GetTeam } from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
@@ -10,6 +10,7 @@ const initialState = {
   latestPeopleFetch: null,
   reports: { list: null, total: 0, hasMore: false },
   latestReportsFetch: null,
+  team: null,
   // entries stay null until the first page arrives, so an empty log is told apart from one not read yet
   audit: { entries: null, hasMore: false },
 };
@@ -44,6 +45,9 @@ const slice = createSlice({
         if (action.meta.requestId !== state.latestReportsFetch) return;
         const { reports, total, hasMore } = action.payload;
         state.reports = { list: action.meta.arg.page ? [...state.reports.list, ...reports] : reports, total, hasMore };
+      })
+      .addCase(GetTeam.fulfilled, (state, action) => {
+        state.team = action.payload.members;
       })
       .addCase(GetAuditLog.fulfilled, (state, action) => {
         const { entries, hasMore } = action.payload;

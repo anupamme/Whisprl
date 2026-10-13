@@ -3,7 +3,7 @@ import { useRoutes, Navigate } from "react-router-dom";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import { DEFAULT_AUTH, DEFAULT_DOCS, DEFAULT_PATH } from "@/config";
-import { PATH_ADMIN, PATH_DASHBOARD } from "@/routes/paths";
+import { PATH_DASHBOARD } from "@/routes/paths";
 import DashboardLayout from "@/layouts/dashboard";
 import StaffOnly from "@/layouts/admin/StaffOnly";
 import AuthLayout from "@/layouts/auth";
@@ -48,11 +48,13 @@ export default function Router() {
         {
           element: <AdminLayout />,
           children: [
-            { element: <Navigate to={PATH_ADMIN.overview} replace />, index: true },
+            // the layout matches /admin only through a child, and sends each person on to the first page they can use
+            { index: true, element: null },
             { path: "overview", element: <OverviewPage /> },
             { path: "people", element: <PeoplePage /> },
             { path: "reports", element: <ReportsPage /> },
             { path: "audit", element: <AuditLogPage /> },
+            { path: "team", element: <TeamPage /> },
             { path: "*", element: <Navigate to="/404" replace /> },
           ],
         },
@@ -104,6 +106,7 @@ const OverviewPage = Loadable(lazy(() => import("@/pages/admin/Overview")));
 const PeoplePage = Loadable(lazy(() => import("@/pages/admin/People")));
 const ReportsPage = Loadable(lazy(() => import("@/pages/admin/Reports")));
 const AuditLogPage = Loadable(lazy(() => import("@/pages/admin/AuditLog")));
+const TeamPage = Loadable(lazy(() => import("@/pages/admin/Team")));
 
 // docs pages
 const TnCPage = Loadable(lazy(() => import("@/pages/docs/TnC")));
