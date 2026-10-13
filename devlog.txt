@@ -22,6 +22,7 @@
     - Report a message from its menu. The report sends the messages around it from both sides, and the dialog says so before anything is sent
 
   - Improvements:
+    - Every email is redesigned around the app's own look, reads well on a phone and a computer, and follows your light or dark setting
     - The composer's tools tuck behind a chevron while writing on a phone, so the message box gets the room
     - Deleting a message for everyone now shows at once instead of after the server answers
 
@@ -33,6 +34,9 @@
   - Developers:
     - Staff admin panel at /admin for the owner and admins: overview, people, suspend and ban with a passkey, a reports queue, an audit log and a team page
     - The owner is set by OWNER_EMAIL in backend/.env; admins get a checklist of permissions from the team page
+    - One shell in src/templates/mail/layout.js builds every email, each carrying a plain-text part beside the HTML
+    - backend/scripts/sendRebrand.js sends the one-off rebrand note, from CAMPAIGN_MAIL_USER rather than the account that sends codes
+    - The rebrand email carries a collage of real app screenshots, served from Cloudinary under email-media/ by scripts/uploadEmailMedia.js
 
   - Internal:
     - Reports keep a fingerprint of each message, checked when reported, so a reported message can be shown to be the real one

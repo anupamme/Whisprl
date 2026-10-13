@@ -76,7 +76,7 @@ export const SECTIONS = [
           "Google Analytics, to count visits and see which pages are used",
           "Cloudinary, to store the photos, videos, voice messages and documents you send, which it receives encrypted",
           "Gmail, to send your verification codes and password reset emails",
-          "Netlify and Render, which host the app",
+          "Netlify and Northflank, which host the app",
         ],
       },
       "Whisprl sets no cookies of its own. It keeps the key that keeps you logged in, your encryption key and preferences such as dark mode in your browser's storage. Google Analytics and reCAPTCHA set cookies of their own. Your data is not sold, and Whisprl shows no ads.",

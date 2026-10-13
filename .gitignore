@@ -8,6 +8,9 @@ node_modules
 .env
 .env.test
 
+# who the rebrand email has already reached, so a rerun skips them
+backend/.rebrand-sent.log
+
 # testing
 /frontend/coverage
 

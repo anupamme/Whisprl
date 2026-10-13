@@ -2,7 +2,7 @@ name: Release
 
 # Each merge into production publishes a GitHub Release tagged v<VERSION>, with that version's
 # CHANGELOG section as its notes. A merge that did not bump the version finds its tag already
-# taken and publishes nothing, so it cannot cut a duplicate. Netlify and Render deploy from the
+# taken and publishes nothing, so it cannot cut a duplicate. Netlify and Northflank deploy from the
 # branches themselves, so nothing is built here.
 
 on:
