@@ -58,6 +58,7 @@ const queuedMessage = (entry, me) => ({
   contact: entry.contact,
   statusQuote: entry.statusQuote,
   mentions: entry.mentions,
+  emojiScale: entry.emojiScale,
   replyTo: entry.replyTo,
   replyToAlbum: entry.replyTo?.isAlbum,
   forwarded: Boolean(entry.forwardOf),

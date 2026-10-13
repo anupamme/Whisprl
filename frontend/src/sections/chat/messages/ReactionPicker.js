@@ -8,7 +8,7 @@ import EmojiPicker from "@/components/EmojiPicker";
 import { quickReactionsOf } from "@/utils/reactions";
 
 export const QuickReactions = ({ current, onPick, onMore }) => {
-  const quickReactions = useSelector((state) => quickReactionsOf(state.user.user));
+  const quickReactions = useSelector(({ user, chat }) => quickReactionsOf(user.user, chat.activeConversation));
   // a reaction picked from the full list takes the first quick slot, so it can be seen and undone in one tap
   const shown = current && !quickReactions.includes(current) ? [current, ...quickReactions.slice(0, -1)] : quickReactions;
 

@@ -17,6 +17,7 @@ import { backgroundOf, textSizeOf } from "@/utils/statuses";
 
 const SHOW_MS = 6000;
 const HOLD_MS = 250;
+const SWIPE_PX = 64;
 const PANEL_WIDTH = 340;
 const SHEET = "#10141C";
 export const CARD_HEIGHT = `min(calc(100dvh - ${FOOTER_HEIGHT + 64}px), 880px)`;
@@ -72,6 +73,8 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
   const holdTimer = useRef(null);
   const viewsPill = useRef(null);
   const wasHeld = useRef(false);
+  const replyField = useRef(null);
+  const swipeFrom = useRef(null);
   const { owner, content } = status;
   const isPaused = isUserPaused || isHeld || isListingViewers || isTyping || isPicking || isMoreOpen || Boolean(profileId) || Boolean(dialog);
   const markReady = useCallback(() => setIsReady(true), []);
@@ -96,6 +99,33 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
   const tapTo = (move) => () => {
     if (wasHeld.current) wasHeld.current = false;
     else move();
+  };
+
+  // dragging with a mouse selects rather than swipes, so only a finger starts one
+  const startGesture = (event) => {
+    startHold();
+    swipeFrom.current = event.pointerType === "touch" ? { x: event.clientX, y: event.clientY } : null;
+  };
+
+  const cancelGesture = () => {
+    endHold();
+    swipeFrom.current = null;
+  };
+
+  const endGesture = (event) => {
+    endHold();
+    const from = swipeFrom.current;
+    swipeFrom.current = null;
+    if (!from) return;
+    const down = event.clientY - from.y;
+    if (Math.abs(down) < SWIPE_PX || Math.abs(event.clientX - from.x) > Math.abs(down)) return;
+
+    // letting go after a swipe must not also count as a tap on the halves that step through
+    wasHeld.current = true;
+    if (down > 0) onClose();
+    else if (isOwn) setIsListingViewers(true);
+    else if (canReply) replyField.current?.focus();
+    else setIsPicking(true);
   };
 
   // Play means play, so it clears whatever else was holding the update rather than only the pause button's own hold
@@ -132,10 +162,10 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
         }}
       >
         <Box
-          onPointerDown={startHold}
-          onPointerUp={endHold}
-          onPointerLeave={endHold}
-          onPointerCancel={endHold}
+          onPointerDown={startGesture}
+          onPointerUp={endGesture}
+          onPointerLeave={cancelGesture}
+          onPointerCancel={cancelGesture}
           sx={{
             position: "relative",
             overflow: "hidden",
@@ -186,7 +216,7 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
             <ViewsPill views={status.views} pillRef={viewsPill} onOpen={() => setIsListingViewers(true)} />
           </Box>
         ) : (
-          <ReplyBar status={status} canReply={canReply} isPicking={isPicking} onPicking={setIsPicking} onTyping={setIsTyping} />
+          <ReplyBar status={status} canReply={canReply} fieldRef={replyField} isPicking={isPicking} onPicking={setIsPicking} onTyping={setIsTyping} />
         )}
       </Stack>
 

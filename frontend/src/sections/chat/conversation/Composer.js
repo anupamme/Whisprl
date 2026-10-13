@@ -2,22 +2,25 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Box, IconButton, InputBase, Popover, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { AnimatePresence, m } from "framer-motion";
-import { ArrowBendUpLeft, PaperPlaneTilt, PencilSimple, Smiley, X } from "phosphor-react";
-import { useDispatch, useSelector } from "react-redux";
+import { ArrowBendUpLeft, CaretRight, PaperPlaneTilt, PencilSimple, Smiley, X } from "phosphor-react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import EmojiPicker from "@/components/EmojiPicker";
 import { ChooseAttachments } from "@/redux/slices/actions/attachmentActions";
 import { SendTextMessage } from "@/redux/slices/actions/chatActions";
 import { EditMessage } from "@/redux/slices/actions/messageActions";
-import { setDraft, setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
+import { setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
 import AttachMenu from "@/sections/chat/conversation/AttachMenu";
 import { MESSAGE_COLUMN_WIDTH } from "@/sections/chat/conversation/ConversationMain";
 import MentionSuggestions from "@/sections/chat/conversation/MentionSuggestions";
+import QuickEmojiButton from "@/sections/chat/conversation/QuickEmojiButton";
 import ShareContactDialog from "@/sections/chat/conversation/ShareContactDialog";
 import VoiceRecorder from "@/sections/chat/conversation/VoiceRecorder";
+import { useDraft } from "@/sections/chat/conversation/useDraft";
 import { useTyping } from "@/sections/chat/conversation/useTyping";
 import MediaTile from "@/sections/chat/messages/MediaTile";
 import getAvatar from "@/utils/avatars";
+import { quickEmojiOf } from "@/utils/emoji";
 import { thumbnailFileOf } from "@/utils/messageFiles";
 import { quoteSummaryOf, summaryOf } from "@/utils/messageSummary";
 import { gradientOf } from "@/utils/gradients";
@@ -53,6 +56,23 @@ export const ROUND_BUTTON = {
   "&:hover": { filter: "brightness(1.08)" },
   "&:active": { transform: "scale(0.94)" },
   "&.Mui-disabled": { color: "common.white", opacity: 0.45 },
+};
+
+const ROW_PAD = 4;
+const TOOL_SIZE = 40;
+const TOOL_BUTTON = { width: TOOL_SIZE, height: TOOL_SIZE, color: "text.secondary" };
+
+// the bar starts after the attach and microphone buttons, so the microphone stays put under the finger holding it
+const RECORDING_BAR = { left: ROW_PAD + TOOL_SIZE * 2, right: 56 };
+
+// the quick emoji stands on its own, so only sending gets a filled circle
+const QUICK_EMOJI_BUTTON = {
+  width: 48,
+  height: 48,
+  flexShrink: 0,
+  fontSize: 30,
+  transition: "transform 160ms ease",
+  "&:active": { transform: "scale(0.94)" },
 };
 
 const SWAP = { initial: { scale: 0.4, rotate: -45, opacity: 0 }, animate: { scale: 1, rotate: 0, opacity: 1 }, exit: { scale: 0.4, rotate: 45, opacity: 0 }, transition: { duration: 0.16 } };
@@ -98,18 +118,29 @@ const Composer = () => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
   const user = useSelector((state) => state.user.user);
   const meId = user._id;
-  const { activeConversation: conversation, replyingTo, editing, drafts } = useSelector((state) => state.chat);
-  const [value, setValue] = useState(drafts[conversation._id] ?? "");
+  const { activeConversation: conversation, replyingTo, editing } = useSelector(
+    ({ chat }) => ({ activeConversation: chat.activeConversation, replyingTo: chat.replyingTo, editing: chat.editing }),
+    shallowEqual
+  );
+  const savedDraft = useSelector((state) => state.chat.drafts[conversation._id]);
+  const [value, setValue] = useState(savedDraft ?? "");
   const [mentionIds, setMentionIds] = useState([]);
   const [mentionQuery, setMentionQuery] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [showsTools, setShowsTools] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [emojiAnchor, setEmojiAnchor] = useState(null);
   const [isSharingContact, setIsSharingContact] = useState(false);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
   const pendingCaret = useRef(null);
-  const { noteDraft, stopTyping } = useTyping(conversation._id);
+  const { noteTyping, stopTyping } = useTyping(conversation._id);
+  const { noteDraft, clearDraft } = useDraft(conversation._id);
+
+  const showsSend = Boolean(value.trim()) || Boolean(editing);
+  // on a phone the tools fold away once you are writing, so the field takes the width instead
+  const isCompact = isSmallScreen && (isFocused || Boolean(value)) && !showsTools;
 
   const suggestions =
     conversation.isGroup && mentionQuery !== null
@@ -133,8 +164,8 @@ const Composer = () => {
     setValue(text);
     setMentionQuery(mentionQueryBefore(text, caret));
     setActiveSuggestion(0);
-    noteDraft(text);
-    if (!editing) dispatch(setDraft({ conversationId: conversation._id, text }));
+    noteTyping(text);
+    if (!editing) noteDraft(text);
   };
 
   const insertAtCaret = (insert, replaceBefore = 0) => {
@@ -162,8 +193,12 @@ const Composer = () => {
 
   const cancelEdit = () => {
     dispatch(setEditing(null));
-    setValue(drafts[conversation._id] ?? "");
+    setValue(savedDraft ?? "");
   };
+
+  // holding the button grows the emoji, and it is sent at the size it reached
+  const sendQuickEmoji = (emojiScale) =>
+    dispatch(SendTextMessage({ text: quickEmojiOf(conversation), emojiScale: emojiScale > 1 ? emojiScale : undefined }));
 
   const submit = (event) => {
     event?.preventDefault();
@@ -181,7 +216,9 @@ const Composer = () => {
     stopTyping();
     setValue("");
     setMentionIds([]);
-    dispatch(setDraft({ conversationId: conversation._id, text: "" }));
+    clearDraft();
+    // writing carries on where it left off, rather than the keyboard closing between messages
+    inputRef.current?.focus();
   };
 
   const handleKeyDown = (event) => {
@@ -214,77 +251,100 @@ const Composer = () => {
   return (
     <Box component="form" onSubmit={submit} sx={{ ...COMPOSER_GUTTER, pt: 0.5 }}>
       <Stack direction="row" alignItems="flex-end" sx={{ position: "relative", gap: 1, maxWidth: COLUMN_WIDTH, mx: "auto" }}>
-        <Box inert={isRecording ? "" : undefined} sx={FIELD_PILL}>
-          {editing && <Banner icon={PencilSimple} title="Editing" text={summaryOf(editing)} onClose={cancelEdit} />}
-          {replyingTo && (
-            <Banner
-              icon={ArrowBendUpLeft}
-              leading={conversation.isGroup && replyPerson ? getAvatar(replyPerson.avatar, replyPerson.firstName, 24) : undefined}
-              title={`Replying to ${replyAuthor}`}
-              text={quoteSummaryOf(replyingTo, meId)}
-              thumbnail={thumbnailFileOf(replyingTo)}
-              onClose={() => dispatch(setReplyingTo(null))}
-            />
-          )}
-          <Stack direction="row" alignItems="flex-end" sx={{ minHeight: 48, px: 0.5 }}>
-            {!editing && (
-              <Box sx={{ pb: "4px" }}>
-                <AttachMenu
-                  onMedia={() => dispatch(ChooseAttachments("media"))}
-                  onDocument={() => dispatch(ChooseAttachments("doc"))}
-                  onContact={() => setIsSharingContact(true)}
-                />
-              </Box>
+        <Box sx={FIELD_PILL}>
+          <Box inert={isRecording ? "" : undefined}>
+            {editing && <Banner icon={PencilSimple} title="Editing" text={summaryOf(editing)} onClose={cancelEdit} />}
+            {replyingTo && (
+              <Banner
+                icon={ArrowBendUpLeft}
+                leading={conversation.isGroup && replyPerson ? getAvatar(replyPerson.avatar, replyPerson.firstName, 24) : undefined}
+                title={`Replying to ${replyAuthor}`}
+                text={quoteSummaryOf(replyingTo, meId)}
+                thumbnail={thumbnailFileOf(replyingTo)}
+                onClose={() => dispatch(setReplyingTo(null))}
+              />
             )}
-            <InputBase
-              ref={fieldRef}
-              inputRef={inputRef}
-              value={value}
-              onChange={(event) => changeText(event.target.value, event.target.selectionStart)}
-              onKeyDown={handleKeyDown}
-              onBlur={() => setMentionQuery(null)}
-              placeholder={isSmallScreen ? "Message" : "Write a message"}
-              inputProps={{ "aria-label": editing ? "Edit message" : "Message" }}
-              multiline
-              maxRows={6}
-              autoFocus={!isSmallScreen}
-              autoComplete="off"
-              sx={{
-                flex: 1,
-                minWidth: 0,
-                px: editing ? 1.5 : 0.75,
-                py: "12px",
-                fontSize: 15,
-                fontWeight: 500,
-                lineHeight: 1.45,
-                "& .MuiInputBase-input::placeholder": { color: "text.secondary", opacity: 1 },
-              }}
-            />
-            <Tooltip title="Emoji">
-              <IconButton aria-label="Emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)} sx={{ mb: "4px", color: "text.secondary" }}>
-                <Smiley size={22} />
-              </IconButton>
-            </Tooltip>
+          </Box>
+          <Stack direction="row" alignItems="flex-end" sx={{ minHeight: 48, px: `${ROW_PAD}px` }}>
+            {!editing &&
+              (isCompact ? (
+                <Tooltip title="More">
+                  <IconButton aria-label="Show attach and voice" onClick={() => setShowsTools(true)} sx={{ ...TOOL_BUTTON, mb: "4px" }}>
+                    <CaretRight size={22} weight="bold" />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <Stack direction="row" alignItems="center" sx={{ pb: "4px" }}>
+                  <AttachMenu
+                    disabled={isRecording}
+                    buttonSx={TOOL_BUTTON}
+                    onMedia={() => dispatch(ChooseAttachments("media"))}
+                    onDocument={() => dispatch(ChooseAttachments("doc"))}
+                    onContact={() => setIsSharingContact(true)}
+                  />
+                  <VoiceRecorder buttonSx={TOOL_BUTTON} overlaySx={RECORDING_BAR} onRecordingChange={setIsRecording} />
+                </Stack>
+              ))}
+            <Box inert={isRecording ? "" : undefined} sx={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-end" }}>
+              <InputBase
+                ref={fieldRef}
+                inputRef={inputRef}
+                value={value}
+                onChange={(event) => changeText(event.target.value, event.target.selectionStart)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                  setIsFocused(false);
+                  setShowsTools(false);
+                  setMentionQuery(null);
+                }}
+                placeholder={isSmallScreen ? "Message" : "Write a message"}
+                inputProps={{ "aria-label": editing ? "Edit message" : "Message" }}
+                multiline
+                maxRows={6}
+                autoFocus={!isSmallScreen}
+                autoComplete="off"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  px: editing ? 1.5 : 0.75,
+                  py: "12px",
+                  fontSize: 15,
+                  fontWeight: 500,
+                  lineHeight: 1.45,
+                  "& .MuiInputBase-input::placeholder": { color: "text.secondary", opacity: 1 },
+                }}
+              />
+              <Tooltip title="Emoji">
+                <IconButton aria-label="Emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)} sx={{ mb: "4px", color: "text.secondary" }}>
+                  <Smiley size={22} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Stack>
         </Box>
 
-        <AnimatePresence mode="wait" initial={false}>
-          {(value.trim() || editing) && !isRecording ? (
-            <m.div key="send" {...SWAP}>
-              <Tooltip title={editing ? "Save" : "Send"}>
-                <span>
-                  <IconButton type="submit" aria-label={editing ? "Save edit" : "Send"} disabled={!value.trim()} sx={ROUND_BUTTON}>
-                    <PaperPlaneTilt size={21} weight="fill" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            </m.div>
-          ) : (
-            <m.div key="voice" {...SWAP}>
-              <VoiceRecorder buttonSx={ROUND_BUTTON} onRecordingChange={setIsRecording} />
-            </m.div>
+        <Box sx={{ width: 48, height: 48, flexShrink: 0 }}>
+          {!isRecording && (
+            <AnimatePresence mode="wait" initial={false}>
+              {showsSend ? (
+                <m.div key="send" {...SWAP}>
+                  <Tooltip title={editing ? "Save" : "Send"}>
+                    <span>
+                      <IconButton type="submit" aria-label={editing ? "Save edit" : "Send"} disabled={!value.trim()} sx={ROUND_BUTTON}>
+                        <PaperPlaneTilt size={21} weight="fill" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </m.div>
+              ) : (
+                <m.div key="emoji" {...SWAP}>
+                  <QuickEmojiButton emoji={quickEmojiOf(conversation)} buttonSx={QUICK_EMOJI_BUTTON} onSend={sendQuickEmoji} />
+                </m.div>
+              )}
+            </AnimatePresence>
           )}
-        </AnimatePresence>
+        </Box>
       </Stack>
 
       <MentionSuggestions anchorEl={fieldRef.current} people={suggestions} activeIndex={activeSuggestion} onPick={pickMention} />

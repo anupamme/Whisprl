@@ -98,6 +98,46 @@ export const passkeyLoginOptions = async () => {
   return options;
 };
 
+// a staff action asks for the passkey again, so a session someone else is holding cannot act on its own
+export const confirmationOptions = async (user) => {
+  const passkeys = await PasskeyModel.find({ user: user._id }).select("credentialId transports");
+  if (!passkeys.length) throw createHttpError.PreconditionRequired("Add a passkey in Settings before taking this action");
+
+  const options = await generateAuthenticationOptions({
+    rpID: relyingParty().rpID,
+    userVerification: "required",
+    allowCredentials: passkeys.map(({ credentialId, transports }) => ({ id: credentialId, transports })),
+  });
+  await rememberChallenge(options.challenge, "confirm", user._id);
+  return options;
+};
+
+export const assertConfirmed = async (user, response) => {
+  const credentialId = typeof response?.id === "string" ? response.id : null;
+  const passkey = credentialId && (await PasskeyModel.findOne({ credentialId, user: user._id }));
+  if (!passkey) throw createHttpError.Unauthorized("That passkey is not one of yours");
+
+  const { origin, rpID } = relyingParty();
+  const { verified, authenticationInfo } = await verifyAuthenticationResponse({
+    response,
+    expectedChallenge: consumeChallenge("confirm", user._id),
+    expectedOrigin: origin,
+    expectedRPID: rpID,
+    credential: {
+      id: passkey.credentialId,
+      publicKey: isoBase64URL.toBuffer(passkey.publicKey),
+      counter: passkey.counter,
+      transports: passkey.transports,
+    },
+  }).catch(() => ({ verified: false }));
+
+  if (!verified) throw createHttpError.Unauthorized("That passkey could not be checked, please try again");
+
+  passkey.counter = authenticationInfo.newCounter;
+  passkey.lastUsedAt = new Date();
+  await passkey.save();
+};
+
 // the passkey's own copy of the account key comes back with the session, so a browser that can unlock does so at once
 export const loginWithPasskey = async (response) => {
   const credentialId = typeof response?.id === "string" ? response.id : null;

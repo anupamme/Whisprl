@@ -1,13 +1,14 @@
+import { useEffect } from "react";
 import { Box, Button, ButtonBase, Stack, Typography } from "@mui/material";
 import { AnimatePresence, m } from "framer-motion";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import Pane, { PaneEmpty, PaneSection, READING_WIDTH } from "@/components/Pane";
 import RelationshipActions from "@/components/profile/RelationshipActions";
 import useHasSettled from "@/hooks/useHasSettled";
-import { GetRequests } from "@/redux/slices/actions/contactActions";
-import { selectWaitingRequests } from "@/redux/slices/contactSlice";
+import { GetRequests, SeeRequests } from "@/redux/slices/actions/contactActions";
+import { selectUnseenRequests, selectWaitingRequests } from "@/redux/slices/contactSlice";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import { FIND_PATH, contactPathOf } from "@/sections/contacts/contactsRoute";
 import { ageOf } from "@/utils/statuses";
@@ -71,10 +72,17 @@ const RequestGroup = ({ label, requests, isMine }) => (
 );
 
 const RequestsView = ({ onBack }) => {
+  const dispatch = useDispatch();
   const incoming = useSelector(selectWaitingRequests);
   const outgoing = useSelector((state) => state.contact.outgoing);
+  const unseen = useSelector((state) => selectUnseenRequests(state).length);
   const hasRequests = useHasSettled(GetRequests);
   const isEmpty = !incoming.length && !outgoing.length;
+
+  // one that lands while the list is open has been seen too, so the count never waits for a reopen
+  useEffect(() => {
+    if (unseen) dispatch(SeeRequests());
+  }, [dispatch, unseen]);
 
   return (
     <Pane title="Requests" subtitle="People who want to be your friend, with their first message, and the requests you've sent." onBack={onBack} width={READING_WIDTH}>

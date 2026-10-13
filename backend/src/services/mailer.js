@@ -8,7 +8,10 @@ const config = {
   },
 };
 
-export const transporter = nodemailer.createTransport(config);
+const transporter = nodemailer.createTransport(config);
+
+export const sendMail = (to, subject, { html, text }, headers) =>
+  transporter.sendMail({ from: `Whisprl <${process.env.MAIL_USER}>`, to, subject, html, text, ...(headers && { headers }) });
 
 // Check time remaining before sending main
 export const formatRemainingTime = (timeInSeconds) => {

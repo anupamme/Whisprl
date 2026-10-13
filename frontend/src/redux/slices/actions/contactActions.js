@@ -43,6 +43,9 @@ export const HideSuggestion = createApiThunk("friends/hide-suggestion", async (u
 // ------------- Get Requests Thunk -------------
 export const GetRequests = createApiThunk("friends/requests", async () => (await axios.get("/friends/requests")).data);
 
+// ------------- Requests Seen Thunk -------------
+export const SeeRequests = createApiThunk("friends/requests/seen", async () => (await axios.put("/friends/requests/seen")).data);
+
 // ------------- Search Users Thunk -------------
 export const SearchForUsers = createApiThunk(
   "user/search",

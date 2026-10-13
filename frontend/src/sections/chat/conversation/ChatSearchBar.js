@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { CircularProgress, IconButton, InputBase, Stack, Tooltip, Typography } from "@mui/material";
 import { CaretDown, CaretUp, MagnifyingGlass, X } from "phosphor-react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
 import { HISTORY_LIMIT, LoadHistory } from "@/redux/slices/actions/messageActions";
@@ -61,7 +61,10 @@ const newestMatchesFor = (needle, messages) => {
 
 const ChatSearchBar = ({ onClose }) => {
   const dispatch = useDispatch();
-  const { activeConversation, messages, history } = useSelector((state) => state.chat);
+  const { activeConversation, messages, history } = useSelector(
+    ({ chat }) => ({ activeConversation: chat.activeConversation, messages: chat.messages, history: chat.history }),
+    shallowEqual
+  );
   const isGathering = useIsLoading(LoadHistory);
   const [query, setQuery] = useState("");
   const [position, setPosition] = useState(0);

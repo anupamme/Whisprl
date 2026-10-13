@@ -106,11 +106,11 @@ export const encryptReaction = (emoji, message, conversation, userId, isForAlbum
 
 const readableOf = (message, plaintext) => {
   if (!message.attachment) {
-    const { text, mentions, contact, statusQuote } = decodePayload(plaintext);
-    return { message: text, mentions, contact, statusQuote };
+    const { text, mentions, contact, statusQuote, emojiScale } = decodePayload(plaintext);
+    return { message: text, mentions, contact, statusQuote, emojiScale, plaintext };
   }
   const { caption, file } = JSON.parse(plaintext);
-  return { message: caption ?? "", file };
+  return { message: caption ?? "", file, plaintext };
 };
 
 const readContent = async (message, conversation) => {

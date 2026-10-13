@@ -28,7 +28,7 @@ const REASONS = [
 const MAX_NOTE = 500;
 
 // a person can be reported and blocked in one go; a group or an update is reported as a whole
-const ReportDialog = ({ subject, explanation, report, details, person, onClose }) => {
+const ReportDialog = ({ subject, explanation, report, details, person, evidence, onClose }) => {
   const dispatch = useDispatch();
   const isSending = useIsLoading(report);
   const [reason, setReason] = useState("");
@@ -37,7 +37,7 @@ const ReportDialog = ({ subject, explanation, report, details, person, onClose }
 
   const send = async (event) => {
     event.preventDefault();
-    const result = await dispatch(report({ ...details, reason, note: note.trim() }));
+    const result = await dispatch(report({ ...details, reason, note: note.trim(), evidence }));
     if (!report.fulfilled.match(result)) return;
     if (alsoBlock) await dispatch(BlockUser(person));
     notify({ severity: "success", message: "Thanks, your report was sent" });
@@ -65,6 +65,13 @@ const ReportDialog = ({ subject, explanation, report, details, person, onClose }
             fullWidth
             sx={{ mt: 1.5 }}
           />
+          {Boolean(evidence?.length) && (
+            <DialogContentText sx={{ mt: 2, fontSize: 13 }}>
+              {evidence.length === 1
+                ? "This sends that message to Whisprl, including anything attached to it."
+                : `This sends the last ${evidence.length} messages in this chat to Whisprl, whoever sent them, including anything attached.`}
+            </DialogContentText>
+          )}
           {person && (
             <FormControlLabel
               control={<Checkbox checked={alsoBlock} onChange={(event) => setAlsoBlock(event.target.checked)} />}

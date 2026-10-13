@@ -1,6 +1,7 @@
 import createHttpError from "http-errors";
 
 import { ChatPreferenceModel } from "#src/models/index.js";
+import { QUICK_REACTION_COUNT, areQuickReactions, isEmoji } from "#src/utils/emoji.js";
 
 const HOUR_MS = 60 * 60 * 1000;
 const MUTED_FOREVER = new Date("9999-12-31T00:00:00Z");
@@ -18,7 +19,20 @@ const asFlag = (value, label) => {
   return value;
 };
 
-const PREFERENCE_FIELDS = "mutedUntil isFavourite isArchived clearedAt deletedAt";
+// null puts a chat back on the default, so only a chosen emoji is stored
+const asQuickEmoji = (value) => {
+  if (value === null) return null;
+  if (!isEmoji(value)) throw createHttpError.BadRequest("Pick a single emoji");
+  return value;
+};
+
+const asQuickReactions = (value) => {
+  if (value === null) return null;
+  if (!areQuickReactions(value)) throw createHttpError.BadRequest(`Choose ${QUICK_REACTION_COUNT} different emoji`);
+  return value;
+};
+
+const PREFERENCE_FIELDS = "mutedUntil isFavourite isArchived clearedAt deletedAt quickEmoji quickReactions";
 
 // the record's own id stays behind, since the answer is merged into the conversation it describes
 const save = async (user_id, conversation_id, changes) => {
@@ -30,11 +44,13 @@ const save = async (user_id, conversation_id, changes) => {
   return preferences;
 };
 
-export const updatePreferences = (user_id, conversation_id, { mute, isFavourite, isArchived }) => {
+export const updatePreferences = (user_id, conversation_id, { mute, isFavourite, isArchived, quickEmoji, quickReactions }) => {
   const changes = {
     ...(mute !== undefined && { mutedUntil: mutedUntilFor(mute) }),
     ...(isFavourite !== undefined && { isFavourite: asFlag(isFavourite, "a favourite") }),
     ...(isArchived !== undefined && { isArchived: asFlag(isArchived, "archived") }),
+    ...(quickEmoji !== undefined && { quickEmoji: asQuickEmoji(quickEmoji) }),
+    ...(quickReactions !== undefined && { quickReactions: asQuickReactions(quickReactions) }),
   };
   if (!Object.keys(changes).length) throw createHttpError.BadRequest("Nothing to change");
   return save(user_id, conversation_id, changes);

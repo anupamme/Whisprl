@@ -29,7 +29,7 @@ const announceAlbumReaction = (io, result) => {
 
 // -------------------------- Edit --------------------------
 export const edit = handle(async (req, io) =>
-  announceUpdate(io, await editMessage(req.params.message_id, req.user._id, req.body.cipher))
+  announceUpdate(io, await editMessage(req.params.message_id, req.user._id, req.body.cipher, req.body.franking))
 );
 
 // -------------------------- Delete For Everyone --------------------------

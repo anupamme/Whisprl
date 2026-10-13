@@ -17,6 +17,7 @@ import {
 } from "@/redux/slices/chatSlice";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
 import axios from "@/utils/axios";
+import { frankingKey, frankingOf } from "@/utils/crypto/franking";
 import { encryptMessage, encryptReaction } from "@/utils/crypto/messageCipher";
 import { holdReaction } from "@/utils/heldReactions";
 import { batchKeyOf } from "@/utils/messageFiles";
@@ -32,11 +33,13 @@ export const EditMessage = createApiThunk("message/edit", async ({ message: edit
   dispatch(setEditing(null));
   // a reaction that landed while typing is kept, since the copy being edited may be older than the one shown
   const message = getState().chat.messages.find((shown) => shown._id === editing._id) ?? editing;
-  dispatch(replaceMessage({ ...message, message: text, mentions, editedAt: new Date().toISOString(), isEditPending: true }));
+  const key = frankingKey();
+  const plaintext = encodePayload({ text, mentions, statusQuote: message.statusQuote, frankingKey: key });
+  dispatch(replaceMessage({ ...message, message: text, mentions, plaintext, editedAt: new Date().toISOString(), isEditPending: true }));
   try {
     const conversation = conversationById(getState(), message.conversation);
-    const cipher = await encryptMessage(encodePayload({ text, mentions, statusQuote: message.statusQuote }), conversation, getState().user.user._id);
-    await axios.patch(`/message/${message._id}`, { cipher });
+    const cipher = await encryptMessage(plaintext, conversation, getState().user.user._id);
+    await axios.patch(`/message/${message._id}`, { cipher, franking: await frankingOf(key, plaintext) });
     dispatch(editSettled(message));
   } catch (error) {
     dispatch(replaceMessage(message));
@@ -45,8 +48,32 @@ export const EditMessage = createApiThunk("message/edit", async ({ message: edit
 });
 
 // ------------- Delete -------------
-export const DeleteForEveryone = createApiThunk("message/delete-for-everyone", async (message) => {
-  await axios.delete(`/message/${message._id}`);
+// everything the server strips, so the note it leaves behind does not change again when its copy arrives
+const asDeleted = (message) => ({
+  ...message,
+  message: undefined,
+  file: undefined,
+  files: [],
+  attachment: undefined,
+  contact: undefined,
+  statusQuote: undefined,
+  reactions: [],
+  replyTo: undefined,
+  replyToAlbum: undefined,
+  forwarded: undefined,
+  deletedAt: new Date().toISOString(),
+});
+
+// the note shows at once, and the message comes back if the server refuses to delete it
+export const DeleteForEveryone = createApiThunk("message/delete-for-everyone", async (message, { dispatch, getState }) => {
+  const shown = getState().chat.messages.find((each) => each._id === message._id) ?? message;
+  dispatch(replaceMessage(asDeleted(shown)));
+  try {
+    await axios.delete(`/message/${message._id}`);
+  } catch (error) {
+    dispatch(replaceMessage(shown));
+    throw error;
+  }
 });
 
 export const DeleteForMe = createApiThunk("message/delete-for-me", async (message, { dispatch }) => {

@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import useSettings from "@/hooks/useSettings";
-import { selectWaitingRequests } from "@/redux/slices/contactSlice";
+import { selectUnseenRequests } from "@/redux/slices/contactSlice";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { isMuted } from "@/utils/chats";
@@ -25,14 +25,14 @@ const RAIL_WIDTH = 76;
 const TAB_BAR_HEIGHT = 65;
 export const PAGE_HEIGHT_WITH_TAB_BAR = `calc(100dvh - ${TAB_BAR_HEIGHT}px - env(safe-area-inset-bottom))`;
 const SLIDE = { type: "spring", stiffness: 500, damping: 38 };
-const ON_RAIL = "#9DB0CB";
+export const ON_RAIL = "#9DB0CB";
 
 const useBadgeCounts = () => {
   const unreadChats = useSelector(
     (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
   );
-  const waitingRequests = useSelector((state) => selectWaitingRequests(state).length);
-  return { [chat]: unreadChats, [contacts]: waitingRequests };
+  const newRequests = useSelector((state) => selectUnseenRequests(state).length);
+  return { [chat]: unreadChats, [contacts]: newRequests };
 };
 
 const isAt = (pathname, path) => Boolean(matchPath({ path, end: false }, pathname));

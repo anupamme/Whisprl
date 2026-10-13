@@ -76,6 +76,9 @@ const messageSchema = mongoose.Schema(
 
     cipher: { type: cipherSchema, default: undefined },
 
+    // a fingerprint of what was sent, kept so a reported message can be shown to be the real one
+    franking: { type: String },
+
     // a change to a group, shown as a note in the chat rather than a bubble
     event: { type: eventSchema, default: undefined },
 

@@ -94,6 +94,9 @@ export const validateCipher = (cipher, conversation, sender_id) => {
 
 export const isClientId = (clientId) => typeof clientId === "string" && /^[\w-]{8,64}$/.test(clientId);
 
+// a base64 SHA-256 fingerprint, and nothing the sender says about it is trusted beyond its shape
+export const isFranking = (franking) => typeof franking === "string" && /^[A-Za-z0-9+/]{43}=$/.test(franking);
+
 // an encrypted file is unreadable here, so only its size is checked, against the 10 MB a free Cloudinary plan stores
 export const MAX_SEALED_FILE_SIZE = 10 * 1024 * 1024;
 
