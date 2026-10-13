@@ -19,6 +19,7 @@
     - A quick emoji button sits beside the message box: tap to send it, hold to send it bigger. Customise it, and the six reaction emoji, per chat from its details panel
     - Messages of up to five emoji on their own now show without a bubble, sized by how many there are
     - A message now makes a sound the moment it joins the chat, before the one that says it reached the server
+    - Report a message from its menu. The report sends the messages around it from both sides, and the dialog says so before anything is sent
 
   - Improvements:
     - The composer's tools tuck behind a chevron while writing on a phone, so the message box gets the room
@@ -30,5 +31,8 @@
     - The Contacts badge now shows only requests you have not yet opened, and clears once you open the list
 
   - Developers:
+    - Staff admin panel at /admin for the owner and admins: overview, people, suspend and ban with a passkey, a reports queue, an audit log and a team page
+    - The owner is set by OWNER_EMAIL in backend/.env; admins get a checklist of permissions from the team page
 
   - Internal:
+    - Reports keep a fingerprint of each message, checked when reported, so a reported message can be shown to be the real one
