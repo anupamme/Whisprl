@@ -6,6 +6,43 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-10-13
+
+### New
+
+- Onboarding now includes a step to turn on notifications, with targeted guidance for browsers that block or don't support them
+- Swiping down on a status closes it; swiping up opens the reply field, or shows who saw it on your own update
+- A quick emoji button sits beside the message box: tap to send it, hold to send it bigger. Customise it, and the six reaction emoji, per chat from its details panel
+- Messages of up to five emoji on their own now show without a bubble, sized by how many there are
+- A message now makes a sound the moment it joins the chat, before the one that says it reached the server
+- Report a message from its menu. The report sends the messages around it from both sides, and the dialog says so before anything is sent
+
+### Improvements
+
+- Every email is redesigned around the app's own look, reads well on a phone and a computer, and follows your light or dark setting
+- The composer's tools tuck behind a chevron while writing on a phone, so the message box gets the room
+- Deleting a message for everyone now shows at once instead of after the server answers
+
+### Fixed
+
+- Typing in a long conversation no longer lags; the composer input responds instantly again
+- The typing indicator bubble no longer stretches to full width on mobile
+- The Contacts badge now shows only requests you have not yet opened, and clears once you open the list
+
+### Developers
+
+- Staff admin panel at /admin for the owner and admins: overview, people, suspend and ban with a passkey, a reports queue, an audit log and a team page
+- The owner is set by OWNER_EMAIL in backend/.env; admins get a checklist of permissions from the team page
+- One shell in src/templates/mail/layout.js builds every email, each carrying a plain-text part beside the HTML
+- backend/scripts/sendRebrand.js sends the one-off rebrand note, from CAMPAIGN_MAIL_USER rather than the account that sends codes
+- The rebrand email carries a collage of real app screenshots, served from Cloudinary under email-media/ by scripts/uploadEmailMedia.js
+
+### Internal
+
+- An account with no stored role is read as an ordinary user everywhere, including when it is read without Mongoose's defaults, so it can never pass the staff check
+- What's new now announces the quick emoji button, status swipes and reporting a message
+- Reports keep a fingerprint of each message, checked when reported, so a reported message can be shown to be the real one
+
 ## [2.1.0] - 2026-10-09
 
 ### New
@@ -260,6 +297,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.2.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.2.0
 [2.1.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.1.0
 [2.0.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.0.0
 [1.0.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v1.0.0
