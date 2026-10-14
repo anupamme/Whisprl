@@ -15,24 +15,21 @@ import { focusMessage, selectActiveOutbox } from "@/redux/slices/chatSlice";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
 import { notify } from "@/utils/notify";
 import { formatDayLabel } from "@/utils/formatMessageTime";
+import { bareEmojiSizeOf } from "@/utils/emoji";
 import { filesOf } from "@/utils/messageFiles";
 import { describeEvent, typingNamesIn } from "@/utils/groups";
 import TypingBubble, { TYPING_BUBBLE_HEIGHT } from "@/sections/chat/messages/TypingBubble";
 import useIsLoading from "@/hooks/useIsLoading";
 
-const EMOJI = /[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
-
-const isOnlyEmoji = (text) => Boolean(text) && [...text].every((char) => EMOJI.test(char));
-
 const messageTypeOf = (message) => {
   const hasFiles = filesOf(message).length > 0;
   if (hasFiles && message.message) return "file_with_caption";
   if (hasFiles) return "file";
-  return isOnlyEmoji(message.message) ? "emoji" : "text";
+  return bareEmojiSizeOf(message.message) ? "emoji" : "text";
 };
 
 // an event or a lone emoji stands apart, so the bubbles either side of it start or end a run
-const joinsRun = (item) => Boolean(item) && item.type !== "event" && !isOnlyEmoji(item.message.message);
+const joinsRun = (item) => Boolean(item) && item.type !== "event" && !bareEmojiSizeOf(item.message.message);
 
 const dayOf = (message) => new Date(message.createdAt).toDateString();
 
@@ -249,7 +246,6 @@ const ConversationMain = () => {
         width="100%"
         ref={scrollRef}
         onScroll={handleScroll}
-        className="scrollbar"
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -311,7 +307,7 @@ const ConversationMain = () => {
                 const nextItem = entries[position + 1]?.item;
                 const isStartOfSequence = !joinsRun(previousItem) || previousItem.message.sender._id !== message.sender._id;
                 const isEndOfSequence =
-                  !joinsRun(nextItem) || nextItem.message.sender._id !== message.sender._id || isOnlyEmoji(message.message);
+                  !joinsRun(nextItem) || nextItem.message.sender._id !== message.sender._id || Boolean(bareEmojiSizeOf(message.message));
                 const isMine = user._id === message.sender._id;
 
                 return (

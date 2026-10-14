@@ -5,8 +5,10 @@ import mongoose from "mongoose";
 import app from "#app.js";
 import { initializeSocket } from "#socket.js";
 import { sweepExpiredMessages } from "#src/services/disappearingService.js";
+import { sweepOldEvidence } from "#src/services/reportQueueService.js";
 import { dropKeylessSessions } from "#src/services/sessionService.js";
 import { sweepExpiredStatuses } from "#src/services/statusService.js";
+import { clearDefaultStatuses, giveEveryoneACoverStyle } from "#src/services/userService.js";
 import { giveEveryoneAUsername } from "#src/services/usernameService.js";
 
 // env variables
@@ -28,6 +30,12 @@ mongoose
     giveEveryoneAUsername()
       .then((given) => given && console.log(`[DB] Gave ${given} accounts a username`))
       .catch((error) => console.log(`[DB] Usernames not given: ${error.message}`));
+    giveEveryoneACoverStyle()
+      .then((given) => given && console.log(`[DB] Gave ${given} accounts a cover style`))
+      .catch((error) => console.log(`[DB] Cover styles not given: ${error.message}`));
+    clearDefaultStatuses()
+      .then((cleared) => cleared && console.log(`[DB] Cleared ${cleared} default statuses`))
+      .catch((error) => console.log(`[DB] Default statuses not cleared: ${error.message}`));
     dropKeylessSessions()
       .then((dropped) => dropped && console.log(`[DB] Ended ${dropped} sessions from before session keys`))
       .catch((error) => console.log(`[DB] Old sessions not ended: ${error.message}`));
@@ -35,6 +43,7 @@ mongoose
     setInterval(() => {
       sweepExpiredMessages(app.get("io")).catch(sweepFailed);
       sweepExpiredStatuses().catch(sweepFailed);
+      sweepOldEvidence().catch(sweepFailed);
     }, SWEEP_EVERY_MS);
   })
   .catch((err) => {

@@ -1,0 +1,52 @@
+{
+  "upcoming": [],
+  "releases": [
+    {
+      "version": "2.2.0",
+      "date": "2026-10-13",
+      "highlights": [
+        {
+          "emoji": "😺",
+          "title": "Quick emoji",
+          "text": "Tap the emoji beside the message box to send it, or hold to send it bigger. Pick yours, and your six reactions, for each chat from its details panel."
+        },
+        {
+          "emoji": "👆",
+          "title": "Swipe a status",
+          "text": "Swipe down to close a status, or up to reply. On your own update, swipe up to see who has watched."
+        },
+        {
+          "emoji": "🚩",
+          "title": "Report a message",
+          "text": "Report a message from its menu. The report includes the messages around it, and the dialog tells you what is sent before it goes."
+        }
+      ]
+    },
+    {
+      "version": "2.1.0",
+      "date": "2026-10-09",
+      "highlights": [
+        {
+          "emoji": "📇",
+          "title": "A new Contacts page",
+          "text": "Requests sit above your friends, Find people searches everyone on Whisprl, and a QR code shares your profile."
+        },
+        {
+          "emoji": "✉️",
+          "title": "Requests with a note",
+          "text": "Say who you are when you add someone. The note is end-to-end encrypted and opens your chat once they accept."
+        },
+        {
+          "emoji": "🎂",
+          "title": "Birthdays",
+          "text": "Friends see the day and month, never the year, with Birthdays this week in Contacts. Hide yours in Settings any time."
+        },
+        {
+          "emoji": "⚙️",
+          "title": "Settings in sections",
+          "text": "Your profile, appearance, chats, privacy and security each have a page of their own, on a computer and a phone."
+        }
+      ]
+    }
+  ]
+}

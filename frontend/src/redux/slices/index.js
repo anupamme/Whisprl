@@ -5,3 +5,4 @@ export { default as contactReducer } from "@/redux/slices/contactSlice";
 export { default as encryptionReducer } from "@/redux/slices/encryptionSlice";
 export { default as requestReducer } from "@/redux/slices/requestSlice";
 export { default as statusReducer } from "@/redux/slices/statusSlice";
+export { default as adminReducer } from "@/redux/slices/adminSlice";

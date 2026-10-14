@@ -45,7 +45,7 @@ const micLabelOf = (phase, pending) => {
   return "Record a voice message";
 };
 
-const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
+const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
   const dispatch = useDispatch();
   const [phase, setPhase] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -190,7 +190,7 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
           sx={{
             position: "absolute",
             inset: 0,
-            right: 56,
+            ...overlaySx,
             zIndex: 1,
             px: 1.5,
             borderRadius: "26px",
@@ -237,54 +237,56 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
         </Stack>
       )}
 
-      {phase === "holding" && (
-        <Stack
-          aria-hidden
-          alignItems="center"
-          spacing={0.25}
-          sx={{
-            position: "absolute",
-            right: 4,
-            bottom: "calc(100% + 8px)",
-            zIndex: 1,
-            px: 0.75,
-            py: 1,
-            borderRadius: 4,
-            border: 1,
-            borderColor: isLockPending ? "primary.main" : "divider",
-            bgcolor: isLockPending ? "primary.main" : "background.paper",
-            color: isLockPending ? "primary.contrastText" : "text.secondary",
-            transform: `translateY(${Math.max(drag.up, -LOCK_PX) / 2}px)`,
-            transition: "background-color 120ms, border-color 120ms, color 120ms",
-          }}
-        >
-          <LockSimple size={18} weight={isLockPending ? "fill" : "regular"} />
-          <CaretUp size={14} />
-        </Stack>
-      )}
+      <Box sx={{ position: "relative", display: "flex" }}>
+        {phase === "holding" && (
+          <Stack
+            aria-hidden
+            alignItems="center"
+            spacing={0.25}
+            sx={{
+              position: "absolute",
+              left: "50%",
+              bottom: "calc(100% + 8px)",
+              zIndex: 1,
+              px: 0.75,
+              py: 1,
+              borderRadius: 4,
+              border: 1,
+              borderColor: isLockPending ? "primary.main" : "divider",
+              bgcolor: isLockPending ? "primary.main" : "background.paper",
+              color: isLockPending ? "primary.contrastText" : "text.secondary",
+              transform: `translate(-50%, ${Math.max(drag.up, -LOCK_PX) / 2}px)`,
+              transition: "background-color 120ms, border-color 120ms, color 120ms",
+            }}
+          >
+            <LockSimple size={18} weight={isLockPending ? "fill" : "regular"} />
+            <CaretUp size={14} />
+          </Stack>
+        )}
 
-      <Tooltip title={TOOLTIPS[phase]} disableTouchListener>
-        <IconButton
-          ref={micButton}
-          aria-label={micLabelOf(phase, pending)}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={(event) => isThePress(event) && cancel()}
-          onClick={onClick}
-          onContextMenu={(event) => event.preventDefault()}
-          sx={{
-            ...buttonSx,
-            touchAction: "none",
-            userSelect: "none",
-            WebkitTouchCallout: "none",
-            transition: "transform 120ms ease-out, filter 160ms ease",
-            ...(phase === "holding" && { "&, &:active": { transform: "scale(1.15)" } }),
-          }}
-        >
-          {isLocked ? <PaperPlaneTilt size={20} weight="fill" /> : <Microphone size={20} weight="fill" />}
-        </IconButton>
-      </Tooltip>
+        <Tooltip title={TOOLTIPS[phase]} disableTouchListener>
+          <IconButton
+            ref={micButton}
+            aria-label={micLabelOf(phase, pending)}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={(event) => isThePress(event) && cancel()}
+            onClick={onClick}
+            onContextMenu={(event) => event.preventDefault()}
+            sx={{
+              ...buttonSx,
+              touchAction: "none",
+              userSelect: "none",
+              WebkitTouchCallout: "none",
+              transition: "transform 120ms ease-out, filter 160ms ease",
+              ...(phase === "holding" && { "&, &:active": { transform: "scale(1.15)" } }),
+            }}
+          >
+            {isLocked ? <PaperPlaneTilt size={20} weight="fill" /> : <Microphone size={20} weight="fill" />}
+          </IconButton>
+        </Tooltip>
+      </Box>
     </>
   );
 };

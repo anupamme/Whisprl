@@ -2,7 +2,13 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcrypt";
 
+import { COVER_PALETTES, COVER_PATTERNS } from "#src/utils/coverStyles.js";
+
 const PASSWORD_COST = 12;
+
+// the owner is not stored: it is whichever account OWNER_EMAIL names
+const ROLES = ["user", "admin"];
+export const PERMISSIONS = ["overview", "people", "reports", "suspend", "ban", "audit"];
 
 const publicKeySchema = mongoose.Schema(
   {
@@ -41,14 +47,40 @@ const passwordResetSchema = mongoose.Schema(
   { _id: false }
 );
 
+const coverStyleSchema = mongoose.Schema(
+  {
+    pattern: { type: String, enum: COVER_PATTERNS, required: true },
+    palette: { type: String, enum: COVER_PALETTES, required: true },
+  },
+  { _id: false }
+);
+
+const skippedStepSchema = mongoose.Schema({ version: { type: Number, required: true }, at: { type: Date, required: true } }, { _id: false });
+
+const birthdaySchema = mongoose.Schema(
+  {
+    day: { type: Number, required: true },
+    month: { type: Number, required: true },
+    year: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+export const HIDDEN_PROFILE_FIELDS = ["firstName", "lastName", "username", "avatar", "cover", "activityStatus"];
+
+const profileSchema = mongoose.Schema({ firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String }, { _id: false });
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
     lastName: { type: String, required: [true, "Last Name is required"] },
     username: { type: String, unique: true, sparse: true },
     usernameChangedAt: { type: Date },
+    usernameConfirmedAt: { type: Date },
     avatar: { type: String },
     cover: { type: String, default: "" },
+    // the doodle drawn when there is no cover photo, or once it is removed
+    coverStyle: { type: coverStyleSchema },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -57,10 +89,10 @@ const userSchema = mongoose.Schema(
       lowercase: true,
       validate: [validator.isEmail, "Invalid Email"],
     },
-    activityStatus: {
-      type: String,
-      default: "Hey There! I ❤️ Using Whisprl 😸",
-    },
+    activityStatus: { type: String, default: "" },
+    // friends see the day and month, and the year only proves someone is old enough for Whisprl
+    birthday: { type: birthdaySchema },
+    showBirthdayToFriends: { type: Boolean, default: true },
     onlineStatus: {
       type: String,
       default: "offline",
@@ -71,12 +103,23 @@ const userSchema = mongoose.Schema(
     password: { type: String, select: false },
 
     verified: { type: Boolean, default: false },
+    role: { type: String, enum: ROLES, default: "user" },
+    permissions: { type: [String], enum: PERMISSIONS, default: undefined },
+
+    bannedAt: { type: Date },
+    suspendedUntil: { type: Date },
+    // what a ban replaced, so staff can still tell who it is and a restore puts it all back
+    hiddenProfile: { type: profileSchema, select: false },
     verification: { type: verificationSchema, select: false },
     passwordReset: { type: passwordResetSchema, select: false },
 
     friends: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     blocked: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     statusHiddenFrom: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+
+    suggestToFriendsOfFriends: { type: Boolean, default: true },
+    // hidden by hand, or ended with a decline or an unfriend, so they are never suggested again
+    dismissedSuggestions: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
 
     socialsConnected: {
       type: [String],
@@ -85,9 +128,19 @@ const userSchema = mongoose.Schema(
 
     quickReactions: { type: [String], default: undefined },
 
+    // set only when an account is made, so every account from before setup existed counts as returning
+    isNewAccount: { type: Boolean, default: false },
+    agePausedUntil: { type: Date },
+    skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
+    whatsNewSeen: { type: String },
+
+    // the browser holds the permission itself, so this only records that the account has turned them on once
+    notificationsAllowedAt: { type: Date },
+
     // End-to-end encryption: every public key the account has had, newest last
     publicKeys: [publicKeySchema],
     keyBackup: { type: keyBackupSchema, select: false },
+    recoveryKeySavedAt: { type: Date },
   },
   {
     timestamps: true,

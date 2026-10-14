@@ -1,6 +1,8 @@
 export const DEFAULT_QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "🙏", "👍"];
 
-export const quickReactionsOf = (user) => user.quickReactions?.length ? user.quickReactions : DEFAULT_QUICK_REACTIONS;
+// a chat's own six win over the ones set in Settings, which in turn win over the defaults
+export const quickReactionsOf = (user, conversation) =>
+  [conversation?.quickReactions, user?.quickReactions, DEFAULT_QUICK_REACTIONS].find((choice) => choice?.length);
 
 export const reactionsOf = (message, isForAlbum = false) => (isForAlbum ? message.albumReactions : message.reactions) ?? [];
 

@@ -4,7 +4,7 @@ import { File, GameController, Image, Plus, User } from "phosphor-react";
 
 import { gradientOf } from "@/utils/gradients";
 
-const AttachMenu = ({ onMedia, onDocument, onContact }) => {
+const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact }) => {
   const [anchor, setAnchor] = useState(null);
   const isOpen = Boolean(anchor);
 
@@ -27,8 +27,9 @@ const AttachMenu = ({ onMedia, onDocument, onContact }) => {
           aria-label="Attach"
           aria-haspopup="menu"
           aria-expanded={isOpen}
+          disabled={disabled}
           onClick={(event) => setAnchor(event.currentTarget)}
-          sx={{ color: isOpen ? "primary.main" : "text.secondary" }}
+          sx={{ ...buttonSx, ...(isOpen && { color: "primary.main" }) }}
         >
           <Box component="span" sx={{ display: "grid", transition: "transform 200ms ease", transform: isOpen ? "rotate(45deg)" : "none" }}>
             <Plus size={22} weight="bold" />

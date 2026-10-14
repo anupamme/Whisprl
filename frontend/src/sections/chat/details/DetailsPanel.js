@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import ChatControls from "@/sections/chat/details/ChatControls";
 import GroupDetails from "@/sections/chat/details/GroupDetails";
 import PersonDetails from "@/sections/chat/details/PersonDetails";
+import EmojiSettings from "@/sections/chat/details/EmojiSettings";
 import QuickActions from "@/sections/chat/details/QuickActions";
 import SharedContent from "@/sections/chat/details/SharedContent";
 import { useDetailsToggle } from "@/sections/chat/chatRoute";
@@ -42,12 +43,13 @@ const DetailsPanel = ({ open }) => {
         </Typography>
         {!isPhone && closeButton}
       </Stack>
-      <Box sx={{ flex: 1, overflowY: "auto" }} className="scrollbar">
+      <Box sx={{ flex: 1, overflowY: "auto" }}>
         {conversation.isGroup ? (
           <GroupDetails group={conversation} sharedContent={sharedContent} quickActions={quickActions} />
         ) : (
           <PersonDetails conversation={conversation} sharedContent={sharedContent} quickActions={quickActions} />
         )}
+        <EmojiSettings conversation={conversation} />
         <ChatControls conversation={conversation} />
       </Box>
     </Stack>

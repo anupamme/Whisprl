@@ -33,17 +33,24 @@ const assertNotBlocked = async (sender_id, receiver_id) => {
 };
 
 // a group's members need not all be friends; a direct chat needs the two people still to be
+const assertCanMessage = async (conversation, user_id) => {
+  const receiver_id = !conversation.isGroup && conversation.users.find((member) => !member.equals(user_id));
+  if (receiver_id) await Promise.all([validateFriendship(user_id, receiver_id), assertNotBlocked(user_id, receiver_id)]);
+};
+
 export const findSendableConversation = async (convo_id, user_id) => {
   const conversation = await findMemberConversation(convo_id, user_id);
-  const receiver_id = !conversation.isGroup && conversation.users.find((member) => !member.equals(user_id));
-
-  await Promise.all([
-    receiver_id && validateFriendship(user_id, receiver_id),
-    receiver_id && assertNotBlocked(user_id, receiver_id),
-    populateMembers(conversation),
-  ]);
-
+  await Promise.all([assertCanMessage(conversation, user_id), populateMembers(conversation)]);
   return conversation;
+};
+
+export const canMessageIn = async (convo_id, user_id) => {
+  try {
+    await assertCanMessage(await findMemberConversation(convo_id, user_id), user_id);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 const senderOf = (conversation, sender_id) =>
@@ -86,6 +93,9 @@ export const validateCipher = (cipher, conversation, sender_id) => {
 };
 
 export const isClientId = (clientId) => typeof clientId === "string" && /^[\w-]{8,64}$/.test(clientId);
+
+// a base64 SHA-256 fingerprint, and nothing the sender says about it is trusted beyond its shape
+export const isFranking = (franking) => typeof franking === "string" && /^[A-Za-z0-9+/]{43}=$/.test(franking);
 
 // an encrypted file is unreadable here, so only its size is checked, against the 10 MB a free Cloudinary plan stores
 export const MAX_SEALED_FILE_SIZE = 10 * 1024 * 1024;

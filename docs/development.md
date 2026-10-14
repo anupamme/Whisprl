@@ -18,6 +18,125 @@ scripts/check.sh                             # the gate
 Run the gate before every commit and **gate on its exit code**, not on a read of its output. A
 pipe into `tail` or `grep` reports the exit code of the pipe, so a failed build looks green.
 
+## Staff roles
+
+`OWNER_EMAIL` in `backend/.env` names the one account that owns Whisprl. It is read on every
+request rather than stored, so nothing inside the app can hand ownership to another account,
+and changing the environment is the only way to move it. The account still has to exist and
+be verified; until then nobody is the owner. Every other account is a `user` or an `admin`.
+
+`roleOf` is the one place a role is decided, and it only ever answers `owner`, `admin` or
+`user`. Most accounts predate the field and have no stored role at all, and a record read
+without Mongoose's defaults (a `.lean()` query) arrives with `role` undefined, so the staff
+check must not be written as "anything but user": that would let every old account through.
+
+An admin can do only what the owner ticked for them, from six permissions in
+`PERMISSIONS` (`userModel.js`): `overview`, `people`, `reports`, `suspend`, `ban` and
+`audit`. The owner holds all six plus `team`, which no admin can be given, so nobody but the
+owner can add admins or change what they can do. `permissionsOf` works this out, and the
+session user carries the result so the panel can hide what someone cannot use.
+
+Staff reach the admin panel at `/admin`, which also has a row in Settings that only staff see.
+
+- **The server is what keeps the panel private.** Every `/api/admin` route sits behind
+  `protect` and `staffOnly`, and anyone who is not staff gets the same 404 as an address that
+  does not exist. The route itself is no secret, since the code is public.
+- **Each route checks its own permission.** `allow(permission)` refuses anything outside an
+  admin's permissions with a 403, whatever the panel shows. Lifting a suspension needs
+  `suspend` and lifting a ban needs `ban`, so the restore route checks inside the service,
+  where the account is known.
+- **The admin code loads only for staff.** Its layout and pages are lazy chunks behind the
+  `StaffOnly` guard, so nobody else's browser downloads them.
+- **An account is active on any day it opened Whisprl.** Every new session and every token
+  renewal (which every page load makes) records one row per account per UTC day in
+  `activities`, and the overview's active counts read those rows.
+- **Suspending and banning shut an account out at once.** Both end every session and
+  disconnect every socket, and `findSessionUser` refuses them on each later request, so a
+  token still in flight cannot be used. A suspension names the day it ends.
+- **Suspending, banning and restoring email the person, with the reason staff gave.** The
+  action dialog says so. The email is sent after the action and never holds it up: a failed
+  send is logged and the action stands.
+- **A ban writes the placeholder in rather than hiding the account on read.** `populate`
+  skips query middleware, so masking on read missed most of the places a person is shown.
+  Banning moves the name, username, photo, cover and status line into `hiddenProfile` and
+  writes "Deleted account" over them; restoring puts them back. Staff pages read
+  `hiddenProfile` to show who it really is.
+- **Every staff action records an audit entry** through `recordAction`, and asks for the
+  acting person's passkey first. Staff without a passkey are told to add one in Settings:
+  there is no fallback, since a weaker second path would set the bar.
+- **Staff cannot suspend or ban staff**, or themselves. An admin has to be removed from the
+  team before anything can be done to their account.
+- **The Team page is the owner's.** It adds an admin by the email they log in with, changes
+  what they can do, and removes them, each with a reason and the owner's passkey. The audit
+  entry records the permissions granted.
+
+## Reports
+
+A report names a person, a chat, a group or an update. What staff can do with it depends on
+what the server is able to see.
+
+- **Already visible:** profile photos and covers, a group's name, picture and members, and
+  updates shared with everyone, which are stored as they are. The queue shows these directly.
+- **Never visible:** messages, and updates meant for particular people. The only way staff can
+  read those is if the reporter's own device decrypts them and sends them, which the report
+  dialog says plainly before anything is sent.
+- **What a report attaches:** the messages around the reported one, from both sides, with the
+  key for each attached file. The admin page decrypts those files in the browser, so the
+  server never holds a plain copy. Attached messages are deleted 90 days after a report
+  closes, swept alongside expired messages and statuses.
+
+### Franking: proving an attached message is real
+
+A reporter sends plaintext, so without a check they could invent a conversation. Every message
+is sent with a random key sealed inside it and an HMAC of the payload under that key stored in
+the clear as `franking`. Neither half says anything on its own. On a report the plaintext comes
+back, the server takes the key out of it, recomputes the HMAC and compares, and each attached
+message is stored as `verified`, `failed`, or `unchecked` for one sent before franking existed.
+`unchecked` is not the same as `failed`, and the queue says which it is.
+
+An edit is franked again with a fresh key, and the new fingerprint replaces the old one. An edit
+that arrives without one clears the stored fingerprint, so the message reads as `unchecked`
+rather than failing against words that are no longer there.
+
+## Emails
+
+Every email is built from one shell in `backend/src/templates/mail/layout.js`, so the four
+templates differ only in their content. A template returns `{ html, text }`: the plain-text
+half is not optional, because a message with no text part is one of the oldest spam signals
+there is. `sendMail` passes both to Nodemailer, which sends them as one multipart message.
+
+- **The header band is navy in both colour schemes**, like the app's rail. That is what lets
+  one logo work everywhere: an image that has to look right on white and on near-black needs
+  two files and a swap, and this needs neither.
+- **Dark mode is handled three times over**, because clients disagree on how to do it. A
+  `prefers-color-scheme` block covers Apple Mail and iOS, `[data-ogsc]` selectors cover
+  Outlook, and anything that ignores both gets the light design. Gmail's apps invert colours
+  themselves and cannot be told not to, so the palette is chosen to survive being inverted.
+- **Links are recoloured in dark mode, and the button is put back.** A blanket rule on `a`
+  turns every link to the night accent, which would leave the call to action unreadable on its
+  own accent, so `.cta a` is forced back to white after it.
+- **Every piece of text passes WCAG AA** against whatever sits behind it, in both schemes. The
+  opt-out line especially: faint small print is both unreadable and something filters look for.
+- **Images are served from Cloudinary**, the same account the app already uploads to, under
+  `email-media/`. The pictures themselves live in the repo at
+  `backend/src/templates/mail/media/`, and `node scripts/uploadEmailMedia.js` pushes them up
+  under a fixed name each, so the address never changes and a template never has to be edited
+  to pick up a new picture. Keeping them off `frontend/public/` means an email does not wait
+  on a frontend deploy to look right, and the pictures do not ship in the app's bundle.
+- **No inbox plays a video.** `<video>` survives in Apple Mail and nowhere else, so the only
+  thing that moves in an email is an animated GIF, and Outlook shows just its first frame. A
+  three second clip of the showcase video came to 524KB at the smallest size still worth
+  looking at. The campaign carries a still collage instead, at 114KB for five panels rather
+  than 524KB for three seconds of one. The video belongs where video plays: the site, a post,
+  a store listing.
+- **The collage is the real app, not a mockup.** `media/collage.jpg` is built from screenshots
+  driven through the running app at phone width: a status playing with
+  its progress bars, a voice note with its waveform and speed control, a conversation with a
+  quoted reply and delivery ticks, a friend request carrying its note, and the chat list with
+  a group in it. Each panel is cropped to the part that matters, because a whole phone screen
+  is unreadable at the width an email gives it. Rebuild it the same way rather than touching
+  it up, so it never claims the app looks like something it does not.
+
 ## Versioning
 
 `frontend/package.json` is the source of truth. `scripts/release.sh` writes each new
@@ -52,6 +171,10 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
   whatever rc already holds before the PR can merge.
 - **Every PR into `rc` adds a line to `devlog.txt`**, under the heading that matches who
   the change is for. The PR template has the checkbox and the file explains the headings.
+- **A PR with something worth a highlight also adds it to What's new**, in the `upcoming` list of
+  `frontend/src/sections/whats-new/releases.json`: an emoji, a short title and one plain line. It
+  is optional, since most changes are not highlights. A development build shows `upcoming` as a
+  preview, so it can be read before it ships.
 - **Merging `rc` into `production` is the release.** That PR needs no devlog line, because the
   devlog has already moved into `CHANGELOG.md` by then.
 
@@ -61,7 +184,7 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 - **`rc`** publishes nothing either.
 - **Merging into `production` publishes** a GitHub Release tagged `v<version>`, with that version's
   changelog section as its notes. It skips that if the tag already exists, so an ordinary merge
-  that did not bump the version cannot cut a duplicate. Netlify and Render deploy from the
+  that did not bump the version cannot cut a duplicate. Netlify and Northflank deploy from the
   branches themselves, so no build is attached.
 - **The `skip release` label** on an `rc` into `production` PR turns off the release-ready
   checks, for a merge that is deliberately not a release.
@@ -74,14 +197,15 @@ scripts/release.sh           # asks, offering the next patch
 ```
 
 That refuses a dirty tree, cuts `release/0.2.0` from `origin/rc`, moves the devlog into a
-dated `CHANGELOG.md` section, bumps the version, runs the gate, commits, pushes, and opens
+dated `CHANGELOG.md` section, stamps What's new's upcoming highlights with the version and date
+(`scripts/whatsnew.py`), bumps the version, runs the gate, commits, pushes, and opens
 **both** pull requests: the prepare one into `rc`, and the release one from `rc` into
 `production`. If the gate fails it deletes the branch and pushes nothing, leaving the tree as it
 found it.
 
 Merge the prepare PR, then the release PR. Nothing else is needed: `release-ready.yml` blocks
 the second merge unless the version went up, the changelog has a dated section for it, the
-devlog is empty and the tag is free.
+devlog is empty, What's new has nothing left in `upcoming`, and the tag is free.
 
 ```sh
 scripts/skip-release.sh

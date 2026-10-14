@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Divider, IconButton, ListItemIcon, MenuItem, MenuList, Popover, Stack, Tooltip } from "@mui/material";
-import { ArrowBendUpLeft, Copy, DotsThreeVertical, PencilSimple, PushPin, ArrowBendUpRight, Smiley, Trash } from "phosphor-react";
+import { ArrowBendUpLeft, Copy, DotsThreeVertical, Flag, PencilSimple, PushPin, ArrowBendUpRight, Smiley, Trash } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
+import ReportDialog from "@/components/ReportDialog";
+import { ReportChat } from "@/redux/slices/actions/chatSettingsActions";
 import { PinMessage, UnpinMessage } from "@/redux/slices/actions/messageActions";
 import { setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
 import DeleteMessageDialog from "@/sections/chat/messages/DeleteMessageDialog";
@@ -11,6 +13,7 @@ import ReactionPicker, { QuickReactions } from "@/sections/chat/messages/Reactio
 import { filesOf } from "@/utils/messageFiles";
 import { notify } from "@/utils/notify";
 import { myReactionOn } from "@/utils/reactions";
+import { evidenceAround } from "@/utils/reportEvidence";
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
 
@@ -33,6 +36,7 @@ const ToolButton = ({ label, onClick, children }) => (
 const MessageActions = ({ message, members, conversation, isMine, menuAnchor, onMenuClose, onReact }) => {
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
+  const messages = useSelector((state) => state.chat.messages);
   const [moreAnchor, setMoreAnchor] = useState(null);
   const [picker, setPicker] = useState({ anchorEl: null, startsBrowsing: false });
   const [dialog, setDialog] = useState(null);
@@ -64,6 +68,7 @@ const MessageActions = ({ message, members, conversation, isMine, menuAnchor, on
         message.message && { label: "Copy", icon: Copy, run: copy },
         isEditable(message, meId) && { label: "Edit", icon: PencilSimple, run: () => dispatch(setEditing(message)) },
         { label: isPinned ? "Unpin" : "Pin", icon: PushPin, run: () => dispatch((isPinned ? UnpinMessage : PinMessage)(message)) },
+        !isMine && { label: "Report", icon: Flag, run: () => setDialog("report"), isDanger: true },
         !hasUnsent && { label: "Delete", icon: Trash, run: () => setDialog("delete"), isDanger: true },
       ].filter(Boolean);
 
@@ -155,6 +160,17 @@ const MessageActions = ({ message, members, conversation, isMine, menuAnchor, on
       {dialog === "forward" && !isDeleted && <ForwardDialog messages={members ?? [message]} open onClose={() => setDialog(null)} />}
       {dialog === "delete" && (
         <DeleteMessageDialog messages={members ?? [message]} canDeleteForEveryone={isMine && !isDeleted} open onClose={() => setDialog(null)} />
+      )}
+      {dialog === "report" && (
+        <ReportDialog
+          subject="this message"
+          explanation="Whisprl cannot read your messages, so a report carries only what you choose to send."
+          report={ReportChat}
+          details={{ conversationId: message.conversation, userId: message.sender?._id ?? message.sender }}
+          evidence={evidenceAround(messages, message._id)}
+          person={message.sender}
+          onClose={() => setDialog(null)}
+        />
       )}
     </>
   );
